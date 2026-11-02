@@ -34,7 +34,6 @@ fi
 required=(
   "project/README.md"
   "project/package.json"
-  "project/package-lock.json"
   "project/.github/workflows/deploy.yml"
 )
 for path in "${required[@]}"; do
@@ -76,6 +75,7 @@ for npm_script in validate qa:browser; do
   fi
 done
 
+npm install --package-lock-only --ignore-scripts
 npm ci
 npm run validate
 npx playwright install --with-deps chromium
@@ -94,12 +94,12 @@ done
 
 git config user.name "Milad Portfolio Cloud"
 git config user.email "miladmo68@users.noreply.github.com"
-git add public/screenshots/desktop.png public/screenshots/mobile.png
+git add package-lock.json public/screenshots/desktop.png public/screenshots/mobile.png
 if git diff --cached --quiet; then
   echo "Browser QA screenshots must be newly generated or updated" >&2
   exit 1
 fi
-git commit -m "docs: add verified desktop and mobile previews"
+git commit -m "chore: lock dependencies and add verified previews"
 
 cd "$workspace"
 git worktree remove "$validation_dir"
