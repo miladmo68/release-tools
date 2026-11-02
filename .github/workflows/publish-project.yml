@@ -1,0 +1,32 @@
+name: Publish staged portfolio project
+
+on:
+  push:
+    branches:
+      - "release/**"
+    paths:
+      - ".factory/release.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository_owner == 'miladmo68'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ secrets.PORTFOLIO_BOT_TOKEN }}
+    steps:
+      - name: Check out staged release
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Validate and publish repository
+        run: bash scripts/publish-project.sh
+
