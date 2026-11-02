@@ -34,6 +34,7 @@ fi
 required=(
   "project/README.md"
   "project/package.json"
+  "project/package-lock.json"
   "project/.github/workflows/deploy.yml"
 )
 for path in "${required[@]}"; do
@@ -56,6 +57,54 @@ fi
 
 publish_branch="publish-${GITHUB_RUN_ID:-local}"
 git subtree split --prefix=project -b "$publish_branch"
+
+workspace="$(pwd)"
+validation_dir="$(mktemp -d)"
+cleanup() {
+  cd "$workspace"
+  git worktree remove --force "$validation_dir" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+git worktree add "$validation_dir" "$publish_branch"
+cd "$validation_dir"
+
+for npm_script in validate qa:browser; do
+  if ! node -e 'const p=require("./package.json"); process.exit(p.scripts?.[process.argv[1]] ? 0 : 1)' "$npm_script"; then
+    echo "Missing required npm script: $npm_script" >&2
+    exit 1
+  fi
+done
+
+npm ci
+npm run validate
+npx playwright install --with-deps chromium
+npm run qa:browser
+
+screenshots=(
+  "public/screenshots/desktop.png"
+  "public/screenshots/mobile.png"
+)
+for screenshot in "${screenshots[@]}"; do
+  if [[ ! -s "$screenshot" ]]; then
+    echo "Browser QA did not create required screenshot: $screenshot" >&2
+    exit 1
+  fi
+done
+
+git config user.name "Milad Portfolio Cloud"
+git config user.email "miladmo68@users.noreply.github.com"
+git add public/screenshots/desktop.png public/screenshots/mobile.png
+if git diff --cached --quiet; then
+  echo "Browser QA screenshots must be newly generated or updated" >&2
+  exit 1
+fi
+git commit -m "docs: add verified desktop and mobile previews"
+
+cd "$workspace"
+git worktree remove "$validation_dir"
+trap - EXIT
+
 commit_count="$(git rev-list --count "$publish_branch")"
 if (( commit_count < 2 || commit_count > 7 )); then
   echo "Published history must contain 2-7 meaningful commits; found $commit_count" >&2
@@ -76,6 +125,7 @@ gh api --method POST "repos/$full_repo/pages" -f build_type=workflow >/dev/null
   echo "- Repository: https://github.com/$full_repo"
   echo "- Expected live URL: $homepage"
   echo "- Meaningful commits: $commit_count"
+  echo "- Validation: npm ci, validate, Chromium desktop/mobile QA"
   echo
   echo "### Published history"
   git log --reverse --pretty='format:- `%h` %s' "$publish_branch"

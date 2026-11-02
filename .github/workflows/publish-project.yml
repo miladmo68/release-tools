@@ -27,6 +27,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate and publish repository
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate, capture and publish repository
         run: bash scripts/publish-project.sh
 

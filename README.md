@@ -23,9 +23,18 @@ project's own deployment workflow publish it to GitHub Pages.
 2. Build the project only inside `project/`.
 3. Create 2–7 meaningful project commits, normally 5 or 6. Batch related files
    into each commit with Git data operations; do not create one commit per file.
-4. The final project history must include the real application, tests,
-   screenshots, README, and `.github/workflows/deploy.yml`.
-5. In a separate final staging commit, create `.factory/release.json`:
+4. The staged project must include the real application, tests, README,
+   `package-lock.json`, and `.github/workflows/deploy.yml`.
+5. `package.json` must expose `validate` and `qa:browser` scripts. `validate`
+   runs all applicable lint, typecheck, tests and production build checks.
+   `qa:browser` uses Playwright Chromium against the production build, tests
+   every visible interaction at representative desktop and phone viewports,
+   and writes `public/screenshots/desktop.png` and
+   `public/screenshots/mobile.png`.
+6. README starts with `public/screenshots/desktop.png` and also presents the
+   mobile screenshot. The publisher generates both images before publication
+   and adds one final truthful screenshot commit to the public history.
+7. In a separate final staging commit, create `.factory/release.json`:
 
 ```json
 {
@@ -36,7 +45,10 @@ project's own deployment workflow publish it to GitHub Pages.
 ```
 
 The staging manifest commit is excluded from the public project history by
-`git subtree split`. Only commits that changed `project/` reach the new repo.
+`git subtree split`. GitHub Actions installs locked dependencies, runs the full
+validation suite, installs Chromium, performs browser QA, captures desktop and
+mobile screenshots, and only then creates the public repository. A failed test
+leaves the staged branch intact and publishes nothing.
 
 ## Required project workflow
 
