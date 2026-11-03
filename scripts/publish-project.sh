@@ -50,8 +50,14 @@ fi
 
 full_repo="$owner/$repository"
 if gh repo view "$full_repo" >/dev/null 2>&1; then
-  echo "Refusing to overwrite existing repository: $full_repo" >&2
-  exit 1
+  if [[ "$(gh repo view "$full_repo" --json isEmpty --jq .isEmpty)" != "true" ]]; then
+    echo "Refusing to overwrite existing non-empty repository: $full_repo" >&2
+    exit 1
+  fi
+  echo "Resuming publication into existing empty repository: $full_repo"
+  resume_empty=true
+else
+  resume_empty=false
 fi
 
 publish_branch="publish-${GITHUB_RUN_ID:-local}"
@@ -111,7 +117,9 @@ if (( commit_count < 2 || commit_count > 7 )); then
   exit 1
 fi
 
-gh repo create "$full_repo" --public --description "$description"
+if [[ "$resume_empty" != "true" ]]; then
+  gh repo create "$full_repo" --public --description "$description"
+fi
 gh api --method PATCH "repos/$full_repo" -f homepage="$homepage" -f has_issues=true -f has_projects=false -f has_wiki=false >/dev/null
 
 gh auth setup-git
