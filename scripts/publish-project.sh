@@ -112,8 +112,8 @@ git worktree remove "$validation_dir"
 trap - EXIT
 
 commit_count="$(git rev-list --count "$publish_branch")"
-if (( commit_count < 2 || commit_count > 7 )); then
-  echo "Published history must contain 2-7 meaningful commits; found $commit_count" >&2
+if (( commit_count < 13 || commit_count > 21 )); then
+  echo "Two-day release history must contain 12-20 meaningful authoring commits plus the verified screenshot commit (13-21 total); found $commit_count" >&2
   exit 1
 fi
 
