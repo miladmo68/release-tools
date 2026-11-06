@@ -1,6 +1,6 @@
 # Portfolio Cloud Factory
 
-Private release infrastructure for Milad's daily cloud portfolio workflow.
+Private release infrastructure for Milad's two-day cloud portfolio workflow.
 
 This repository exists so the connected cloud task can build a project through
 the GitHub connector without needing Milad's Mac. The final staging commit
@@ -21,8 +21,11 @@ project's own deployment workflow publish it to GitHub Pages.
 
 1. Start a new branch from `release-base` named `release/<project-slug>-<date>`.
 2. Build the project only inside `project/`.
-3. Create 2–7 meaningful project commits, normally 5 or 6. Batch related files
-   into each commit with Git data operations; do not create one commit per file.
+3. Work on the same project over two consecutive Toronto days: 6–10 real
+   development commits on day one, then 6–10 on day two. Batch related files
+   into coherent commits; never invent changes merely to reach a count. The
+   factory adds one final verified commit, producing 13–21 public commits.
+   Add the manifest only on the second day after the app and QA are complete.
 4. The staged project must include the real application, tests, README and
    `.github/workflows/deploy.yml`. Pin dependency versions exactly in
    `package.json`; the factory generates and publishes `package-lock.json`.
