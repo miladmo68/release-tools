@@ -8,8 +8,8 @@
 - Use a new `release/**` branch for every project and never reuse a release slug.
 - Make every project different in domain, information architecture, data model,
   primary interaction, visual direction, color system, typography, and layout.
-- Alternate the daily stack strictly: Next.js, then MERN, then Next.js, then
-  MERN. Determine the next stack from the latest successful tracked release.
+- Alternate the stack per successfully published project: Next.js, then MERN,
+  then Next.js, then MERN. Determine it from the latest successful tracked release.
 - A MERN day must contain genuine React, Express and Node architecture plus a
   MongoDB repository/model adapter. Its free GitHub Pages demo may select a
   deterministic JSON persistence adapter so every interaction works without a
@@ -23,5 +23,14 @@
   them on GitHub Actions before it creates the public repository.
 - Pin every dependency to an exact version in `package.json`. Do not author a
   lockfile in the restricted runtime; the factory generates it before `npm ci`.
-- Create 4 or 5 genuine authoring commits so the factory's verified screenshot
-  commit brings the final public history to the normal 5 or 6 commits.
+- Work on each project over two consecutive Toronto workdays. The first day
+  creates its release branch and advances it with 6-10 genuine development
+  commits; the second day resumes the same branch, adds 6-10 more genuine
+  commits, validates and publishes once. Do not trigger the manifest on day one.
+- The factory's verified lockfile/screenshot commit brings a two-day release to
+  13-21 public commits. Every commit must represent a real development milestone;
+  never split or invent changes just to hit a number. If substantive work cannot
+  support the target, report the actual count and keep quality and truthfulness.
+- Publish a new project on alternate days only; retain the 09:00 Toronto daily
+  automation to run both work phases. If blocked, resume the current branch on
+  the next run rather than creating a duplicate or a compensating release.
