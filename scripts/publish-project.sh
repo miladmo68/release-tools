@@ -12,6 +12,13 @@ if [[ -z "${GH_TOKEN:-}" ]]; then
   exit 1
 fi
 
+# GitHub-hosted Ubuntu runners include system Google Chrome. Use it for real
+# Playwright QA without an apt mirror dependency or a browser download.
+if ! command -v google-chrome >/dev/null 2>&1; then
+  echo "System Google Chrome is unavailable on this runner" >&2
+  exit 1
+fi
+
 read_manifest() {
   node -e 'const m=require("./.factory/release.json"); const v=m[process.argv[1]]; if (typeof v !== "string" || !v.trim()) process.exit(2); process.stdout.write(v.trim())' "$1"
 }
@@ -84,8 +91,7 @@ done
 npm install --package-lock-only --ignore-scripts
 npm ci
 npm run validate
-npx playwright install --with-deps chromium
-npm run qa:browser
+PLAYWRIGHT_USE_SYSTEM_CHROME=1 npm run qa:browser
 
 screenshots=(
   "public/screenshots/desktop.png"

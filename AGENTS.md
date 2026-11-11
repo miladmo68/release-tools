@@ -20,7 +20,10 @@
   mobile and all required validation passes.
 - Because the authoring runtime may not reach npm, put executable validation in
   the required `validate` and Playwright `qa:browser` scripts. The factory runs
-  them on GitHub Actions before it creates the public repository.
+  them on GitHub Actions before it creates the public repository. The browser QA
+  must launch system Google Chrome (`channel: 'chrome'`) when
+  `PLAYWRIGHT_USE_SYSTEM_CHROME=1`; the factory preflights that runner browser
+  and avoids apt mirrors and browser downloads.
 - Pin every dependency to an exact version in `package.json`. Do not author a
   lockfile in the restricted runtime; the factory generates it before `npm ci`.
 - Work on each project over two consecutive Toronto workdays. The first day

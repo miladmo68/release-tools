@@ -31,8 +31,10 @@ project's own deployment workflow publish it to GitHub Pages.
    `package.json`; the factory generates and publishes `package-lock.json`.
 5. `package.json` must expose `validate` and `qa:browser` scripts. `validate`
    runs all applicable lint, typecheck, tests and production build checks.
-   `qa:browser` uses Playwright Chromium against the production build, tests
-   every visible interaction at representative desktop and phone viewports,
+   `qa:browser` uses Playwright against the production build with the runner's
+   preinstalled Google Chrome (`channel: 'chrome'` when
+   `PLAYWRIGHT_USE_SYSTEM_CHROME=1`). It tests every visible interaction at
+   representative desktop and phone viewports,
    and writes `public/screenshots/desktop.png` and
    `public/screenshots/mobile.png`.
 6. README starts with `public/screenshots/desktop.png` and also presents the
@@ -51,8 +53,9 @@ project's own deployment workflow publish it to GitHub Pages.
 
 The staging manifest commit is excluded from the public project history by
 `git subtree split`. GitHub Actions installs locked dependencies, runs the full
-validation suite, installs Chromium, performs browser QA, captures desktop and
-mobile screenshots, and only then creates the public repository. A failed test
+validation suite, checks for the runner's preinstalled Google Chrome, performs
+browser QA without apt or browser downloads, captures desktop and mobile
+screenshots, and only then creates the public repository. A failed test
 leaves the staged branch intact and publishes nothing.
 
 ## Required project workflow
