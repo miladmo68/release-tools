@@ -114,7 +114,7 @@ fi
 git commit -m "chore: lock dependencies and add verified previews"
 
 cd "$workspace"
-git worktree remove "$validation_dir"
+git worktree remove --force "$validation_dir"
 trap - EXIT
 
 commit_count="$(git rev-list --count "$publish_branch")"
