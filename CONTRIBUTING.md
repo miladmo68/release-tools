@@ -25,7 +25,7 @@ Original or licensed images only; no real brands, logos or people.
 ## Commits
 Small, meaningful commits as the work progresses, conventional style
 (`feat: add room filters`, `fix: mobile menu focus`).
-Author: `Milad M <78246624+miladmo68@users.noreply.github.com>`.
+Author: `Milad M <info@miladweb.com>`.
 
 ## Docs
 README: desktop screenshot, title, Live Demo and Source links, stack badges,

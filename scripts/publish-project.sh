@@ -99,7 +99,7 @@ for screenshot in "${screenshots[@]}"; do
 done
 
 git config user.name "Milad M"
-git config user.email "78246624+miladmo68@users.noreply.github.com"
+git config user.email "info@miladweb.com"
 git add package-lock.json public/screenshots/desktop.png public/screenshots/mobile.png
 if git diff --cached --quiet; then
   echo "Browser QA screenshots must be newly generated or updated" >&2
