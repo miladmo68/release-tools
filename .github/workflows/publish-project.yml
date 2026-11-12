@@ -1,0 +1,38 @@
+name: Publish staged portfolio project
+
+on:
+  push:
+    branches:
+      - "release/**"
+    paths:
+      - ".release/manifest.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository_owner == 'miladmo68'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ secrets.PORTFOLIO_BOT_TOKEN }}
+    steps:
+      - name: Check out staged release
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate, capture and publish repository
+        run: bash scripts/publish-project.sh
+
