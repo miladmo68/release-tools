@@ -1,0 +1,50 @@
+[
+  {
+    "id": "harbour-room", "name": "Harbour Room", "eyebrow": "A quieter kind of arrival",
+    "description": "A restful hideaway with a generous window seat and the softest morning light.",
+    "longDescription": "Thoughtfully compact, with a reading corner, warm stone finishes and a view toward the old harbour roofs. Ideal for slow mornings and unhurried evenings.",
+    "sizeSqm": 25, "beds": "Queen bed", "maxGuests": 2, "nightlyRate": 195, "inventory": 4,
+    "features": ["Window seat", "Rain shower", "Coffee and tea", "High-speed Wi-Fi"],
+    "accent": "#B6CAD1", "illustration": "arch", "unavailable": ["2026-11-21", "2026-11-22"]
+  },
+  {
+    "id": "courtyard-room", "name": "Courtyard Room", "eyebrow": "Made for lingering",
+    "description": "Open the doors to a sheltered courtyard and settle into the calm.",
+    "longDescription": "A private courtyard outlook, layered textiles and a walk-in shower give this room a residential feel. A good fit for travellers who want to take their time.",
+    "sizeSqm": 31, "beds": "King bed", "maxGuests": 2, "nightlyRate": 235, "inventory": 3,
+    "features": ["Courtyard view", "King bed", "Walk-in shower", "Nespresso station"],
+    "accent": "#C9C1A9", "illustration": "garden", "unavailable": ["2026-11-28"]
+  },
+  {
+    "id": "coastline-studio", "name": "Coastline Studio", "eyebrow": "Space to make your own",
+    "description": "A light-filled studio with room to work, rest and watch the tide.",
+    "longDescription": "The studio pairs a proper work table with a lounge nook, sea-facing windows and a compact pantry. It was designed for a longer change of scene.",
+    "sizeSqm": 39, "beds": "King bed", "maxGuests": 2, "nightlyRate": 290, "inventory": 2,
+    "features": ["Sea-facing windows", "Work table", "Pantry", "Deep soaking tub"],
+    "accent": "#8BAEB8", "illustration": "studio", "unavailable": ["2026-12-05", "2026-12-06"]
+  },
+  {
+    "id": "skyline-loft", "name": "Skyline Loft", "eyebrow": "Above the everyday",
+    "description": "A two-level loft framed by sculptural lines and expansive sky.",
+    "longDescription": "Climb to an airy sleeping level while the lower floor stays open for conversation, reading or a small celebration. A flexible sofa bed welcomes a third guest.",
+    "sizeSqm": 48, "beds": "King bed + sofa bed", "maxGuests": 3, "nightlyRate": 355, "inventory": 2,
+    "features": ["Two levels", "Sofa bed", "Double-height window", "Separate lounge"],
+    "accent": "#A4BAD2", "illustration": "loft", "unavailable": ["2026-11-20", "2026-11-21", "2026-11-22"]
+  },
+  {
+    "id": "terrace-suite", "name": "Terrace Suite", "eyebrow": "Your private horizon",
+    "description": "A generous suite opening to a terrace above the waterfront.",
+    "longDescription": "An outdoor terrace, separate sitting room and calming mineral palette make space for a special occasion without fuss. The suite accommodates three comfortably.",
+    "sizeSqm": 58, "beds": "King bed + daybed", "maxGuests": 3, "nightlyRate": 425, "inventory": 1,
+    "features": ["Private terrace", "Separate living room", "Daybed", "Freestanding bath"],
+    "accent": "#E3B58F", "illustration": "terrace", "unavailable": ["2026-11-27", "2026-11-28", "2026-11-29"]
+  },
+  {
+    "id": "sable-residence", "name": "Sable Residence", "eyebrow": "A place to stay awhile",
+    "description": "Two bedrooms and a considered living space for sharing the coast.",
+    "longDescription": "Our most spacious address brings two bedrooms, a dining table and a small kitchen together with sheltered harbour views. Designed for families or friends travelling together.",
+    "sizeSqm": 76, "beds": "King + twin beds", "maxGuests": 4, "nightlyRate": 535, "inventory": 1,
+    "features": ["Two bedrooms", "Dining space", "Kitchenette", "Harbour outlook"],
+    "accent": "#B6C4C8", "illustration": "suite", "unavailable": ["2026-12-12", "2026-12-13"]
+  }
+]

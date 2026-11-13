@@ -1,0 +1,5 @@
+[
+  { "id": "breakfast", "name": "Breakfast at the table", "description": "Seasonal breakfast for everyone in your party.", "price": 28, "unit": "night" },
+  { "id": "late-checkout", "name": "A slower departure", "description": "Stay until 2 pm on your last day.", "price": 48, "unit": "stay" },
+  { "id": "welcome-tray", "name": "Coastal welcome tray", "description": "Local treats waiting when you arrive.", "price": 36, "unit": "stay" }
+]
