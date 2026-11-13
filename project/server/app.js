@@ -31,6 +31,7 @@ export function createApp(repository) {
     try { await service.deletePreview(req.params.id); res.status(204).end(); } catch (error) { next(error); }
   });
   app.use((error, _req, res, _next) => {
+    void _next;
     if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid request.", issues: error.issues });
     if (error instanceof DomainError) return res.status(error.status).json({ error: error.message });
     console.error(error);

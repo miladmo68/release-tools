@@ -37,7 +37,9 @@ export function isRoomAvailable(room, search) {
   return dates.length > 0 && search.guests <= room.maxGuests && room.inventory > 0 && dates.every(date => !room.unavailable.includes(date));
 }
 
-/** @param {Array<{maxGuests:number,unavailable:string[],inventory:number}>} rooms @param {{checkIn:string,checkOut:string,guests:number}} search */
+/** @template {{maxGuests:number,unavailable:string[],inventory:number}} T
+ * @param {T[]} rooms @param {{checkIn:string,checkOut:string,guests:number}} search @returns {T[]}
+ */
 export function availableRooms(rooms, search) {
   return rooms.filter(room => isRoomAvailable(room, search));
 }
