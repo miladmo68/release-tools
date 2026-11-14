@@ -69,6 +69,10 @@ async function desktop(browser) {
   await page.getByRole("button", { name: /Save stay preview/ }).click();
   await page.getByText("Preview saved in this browser. No reservation or payment was made.").waitFor();
   expect(await page.locator(".saved-list article").count() === 1, "Preview should appear in saved list");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Download preview for Avery Chen/ }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename().startsWith("sable-sky-stay-"), "Stay summary should download");
   await page.reload({ waitUntil: "networkidle" });
   expect(await page.locator(".saved-list article").count() === 1, "Preview should persist across reload");
   await page.getByRole("button", { name: /Remove preview for Avery Chen/ }).click();
@@ -111,7 +115,7 @@ try {
   browser = await chromium.launch({ headless: true });
   await desktop(browser);
   await mobile(browser);
-  console.log("Browser QA passed: desktop/phone, navigation, search validation, guest filters, sort, room details, focus, extras, form errors, save/reload/remove, empty recovery, runtime errors, overflow, screenshots.");
+  console.log("Browser QA passed: desktop/phone, navigation, search validation, guest filters, sort, room details, focus, extras, form errors, save/reload/download/remove, empty recovery, runtime errors, overflow, screenshots.");
 } finally {
   await browser?.close();
   server.kill("SIGTERM");
