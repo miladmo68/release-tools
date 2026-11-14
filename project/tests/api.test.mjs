@@ -15,6 +15,10 @@ test("API validates searches and persists preview lifecycle through the JSON ada
     const bad = await fetch(`${base}/api/rooms?checkIn=2027-01-12&checkOut=2027-01-11&guests=2`);
     assert.equal(bad.status, 400);
     assert.match((await bad.json()).error, /after arrival/);
+    const incomplete = await fetch(`${base}/api/rooms?checkIn=2027-01-12`);
+    assert.equal(incomplete.status, 400);
+    const malformed = await fetch(`${base}/api/previews`, { method: "POST", headers: { "content-type": "application/json" }, body: "{" });
+    assert.equal(malformed.status, 400);
 
     const body = { roomId: "harbour-room", checkIn: "2027-01-12", checkOut: "2027-01-14", guests: 2, extraIds: ["breakfast"], guestName: "Morgan Lee", guestEmail: "MORGAN@example.com" };
     const created = await fetch(`${base}/api/previews`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -41,6 +45,8 @@ test("API rejects unknown extras and reports unavailable inventory", async () =>
     const request = data => fetch(`${base}/api/previews`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
     const unknown = await request({ ...input, checkIn: "2027-01-12", checkOut: "2027-01-14", extraIds: ["unknown"] });
     assert.equal(unknown.status, 400);
+    const missingRoom = await request({ ...input, roomId: "missing", checkIn: "2027-01-12", checkOut: "2027-01-14" });
+    assert.equal(missingRoom.status, 404);
     const unavailable = await request(input);
     assert.equal(unavailable.status, 409);
   } finally { await new Promise(resolve => server.close(resolve)); }

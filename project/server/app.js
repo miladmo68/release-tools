@@ -34,6 +34,7 @@ export function createApp(repository) {
     void _next;
     if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid request.", issues: error.issues });
     if (error instanceof DomainError) return res.status(error.status).json({ error: error.message });
+    if (error instanceof SyntaxError && "body" in error) return res.status(400).json({ error: "Invalid JSON request body." });
     console.error(error);
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   });
