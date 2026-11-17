@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { initialPlan, tables } from "@/lib/seed";
+import { backupJson, cateringCsv, guestCsv } from "@/lib/export";
 import { assignGuest, assignParty, normalizePlan, openSeats, planRoster, planStats, seatRemaining, suggestTable, tableGuests, updateGuest } from "@/lib/seating";
 import type { Guest, SeatingPlan } from "@/lib/types";
 
@@ -18,6 +19,7 @@ export default function Studio() {
   const [side, setSide] = useState<"all" | Guest["side"]>("all");
   const [notice, setNotice] = useState("");
   const [ready, setReady] = useState(false);
+  const exportDialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     try {
@@ -68,6 +70,16 @@ export default function Studio() {
     if (result.count) setPlan(result.plan);
     setNotice(result.count ? `${result.count} attending guests placed at open tables. Review their positions before saving.` : "No open seats are available for the remaining attending guests.");
   }
+  function download(filename: string, content: string, mime: string) {
+    try {
+      const url = URL.createObjectURL(new Blob([content], { type: mime }));
+      const anchor = document.createElement("a");
+      anchor.href = url; anchor.download = filename; document.body.append(anchor); anchor.click(); anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice(`${filename} downloaded. It contains fictional planning data only.`);
+      exportDialog.current?.close();
+    } catch { setNotice("The file could not be downloaded in this browser. Try another browser or export format."); }
+  }
 
   return <>
     <a className="skip" href="#studio">Skip to seating studio</a>
@@ -83,8 +95,9 @@ export default function Studio() {
           {view === "room" && <><div className="floor-panel"><div className="panel-title"><span>THE GLASSHOUSE / FLOOR PLAN</span><strong>6 TABLES</strong></div><div className="floor-canvas" aria-label="Interactive reception floor plan"><div className="floor-top">GARDEN WINDOWS</div>{tables.map((table) => { const count = tableGuests(table.id, plan.assignments, roster).length; return <button key={table.id} style={{ left: `${table.x}%`, top: `${table.y}%` }} className={`table-node ${table.shape} ${selectedTableId === table.id ? "active" : ""}`} onClick={() => setSelectedTableId(table.id)} aria-pressed={selectedTableId === table.id} aria-label={`${table.name}, ${count} of ${table.capacity} seats filled`}><span>{table.id === "head" ? "A + J" : table.name.replace("Table ", "")}</span><small>{count}/{table.capacity}</small></button>; })}<div className="dance-floor"><span>DANCE<br />FLOOR</span></div><div className="floor-bottom">ENTRANCE · BAR</div></div><div className="floor-legend"><span><i className="legend-table" /> Table</span><span><i className="legend-active" /> Selected</span><span>Tap any table to see who is there</span></div></div>
           <aside className="inspector" aria-label="Selected table details"><div className="panel-title"><span>TABLE DETAILS</span><span>↗</span></div><div className="inspector-head"><span className="table-number">{selectedTable.id === "head" ? "A+J" : selectedTable.name.slice(-2)}</span><div><p className="eyebrow">THE ROOM / {selectedTable.name.toUpperCase()}</p><h3>{selectedTable.name}</h3><span>{openSeats(selectedTable, plan.assignments, roster)} open of {selectedTable.capacity} seats</span></div></div><div className="occupancy"><span style={{ width: `${(tableGuests(selectedTable.id, plan.assignments, roster).length / selectedTable.capacity) * 100}%` }} /></div><div className="inspector-section"><div className="section-heading"><strong>AT THIS TABLE</strong><span>{tableGuests(selectedTable.id, plan.assignments, roster).length} GUESTS</span></div>{tableGuests(selectedTable.id, plan.assignments, roster).length ? tableGuests(selectedTable.id, plan.assignments, roster).map((guest) => <div className="seated-person" key={guest.id}><span className="avatar" aria-hidden="true">{guest.name.split(" ").map((word) => word[0]).join("")}</span><span><strong>{guest.name}</strong><small>{guest.meal} menu</small></span><button title={`Remove ${guest.name} from table`} aria-label={`Remove ${guest.name} from table`} onClick={() => apply(assignGuest(plan, guest.id, null))}>×</button></div>) : <p className="quiet">No one seated here yet. Select an attending guest to begin.</p>}</div><div className="inspector-section assign-section"><div className="section-heading"><strong>PLACE A GUEST</strong></div>{selectedGuest ? <div className="selected-person"><strong>{selectedGuest.name}</strong><span>{selectedGuest.party} · {selectedGuest.rsvp}</span></div> : <p className="quiet">Choose a person from the guest list.</p>}{selectedGuest && <div className="guest-edit"><label>Response<select aria-label={`${selectedGuest.name} response`} value={selectedGuest.rsvp} onChange={(event) => apply(updateGuest(plan, selectedGuest.id, { rsvp: event.target.value as Guest["rsvp"] }))}><option value="attending">Attending</option><option value="pending">Pending</option><option value="declined">Declined</option></select></label><label>Menu choice<select aria-label={`${selectedGuest.name} menu choice`} value={selectedGuest.meal} onChange={(event) => apply(updateGuest(plan, selectedGuest.id, { meal: event.target.value as Guest["meal"] }))}><option value="garden">Garden</option><option value="coast">Coast</option><option value="hearth">Hearth</option></select></label></div>}<button className="assign-button" onClick={seatSelected} disabled={!selectedGuest || selectedGuest.rsvp !== "attending"}>Seat selected guest <span>→</span></button><button className="party-button" onClick={seatParty} disabled={!selectedGuest || selectedGuest.rsvp !== "attending"}>Seat their attending party together</button><button className="party-button" onClick={seatSuggested} disabled={!selectedGuest || selectedGuest.rsvp !== "attending"}>Suggest the best open table</button></div></aside></>}
           {view === "roster" && <div className="roster-summary"><p className="eyebrow">THE PEOPLE</p><h3>Gathered with intention.</h3><p>Select any guest to place them in the room. Search by name, party or note, then narrow by response or circle.</p><div className="meal-summary"><div><strong>{stats.meals.garden}</strong><span>Garden menu</span></div><div><strong>{stats.meals.coast}</strong><span>Coast menu</span></div><div><strong>{stats.meals.hearth}</strong><span>Hearth menu</span></div></div><button className="assign-button" onClick={() => setView("room")}>Return to room plan <span>→</span></button></div>}
-        </div><div className="studio-footer"><p role="status" aria-live="polite">{notice || "Select a guest, then a table. Changes are saved in this browser."}</p><div className="footer-actions"><button onClick={seatAll} disabled={!stats.unseated}>Seat remaining guests</button><button onClick={() => { setPlan({ ...plan, savedAt: new Date().toISOString() }); setNotice("Plan marked saved. This is a private browser preview, not a venue booking."); }}>Mark plan saved</button></div></div>
+        </div><div className="studio-footer"><p role="status" aria-live="polite">{notice || "Select a guest, then a table. Changes are saved in this browser."}</p><div className="footer-actions"><button onClick={() => exportDialog.current?.showModal()}>Export plan</button><button onClick={seatAll} disabled={!stats.unseated}>Seat remaining guests</button><button onClick={() => { setPlan({ ...plan, savedAt: new Date().toISOString() }); setNotice("Plan marked saved. This is a private browser preview, not a venue booking."); }}>Mark plan saved</button></div></div>
       </section>
+      <dialog className="export-dialog" ref={exportDialog} aria-labelledby="export-title"><form method="dialog"><button className="dialog-close" aria-label="Close export options">×</button></form><p className="eyebrow">KEEP THE DETAILS CLOSE</p><h2 id="export-title">Take the plan with you.</h2><p>Download a guest roster, a per-table menu tally, or a JSON backup. These files contain fictional details from this browser only.</p><div className="export-options"><button onClick={() => download("ivory-arc-guests.csv", "\uFEFF" + guestCsv(plan), "text/csv;charset=utf-8")}>Guest roster <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-catering.csv", "\uFEFF" + cateringCsv(plan), "text/csv;charset=utf-8")}>Catering tally <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-plan.json", backupJson(plan), "application/json")}>Plan backup <span>JSON ↗</span></button></div></dialog>
       <footer><span className="brand-mark">I<span>·</span>A</span><p>Make room for what matters.<br /><small>A fictional wedding planning experience. No invitations are sent.</small></p><a href="#top">Back to top ↑</a></footer>
     </main>
   </>;
