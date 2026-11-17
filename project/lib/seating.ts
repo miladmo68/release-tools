@@ -47,6 +47,31 @@ export function assignParty(plan: SeatingPlan, party: string, tableId: string, r
   return { ok: true, plan: { ...plan, assignments, savedAt: null } };
 }
 
+export function suggestTable(plan: SeatingPlan, guestId: string, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables): ReceptionTable | null {
+  const guest = roster.find((item) => item.id === guestId);
+  if (!guest || guest.rsvp !== "attending") return null;
+  const choices = floor.filter((table) => openSeats(table, plan.assignments, roster) > 0 && (guest.party === "The couple" ? table.id === "head" : table.id !== "head"));
+  return choices.map((table) => {
+    const companions = tableGuests(table.id, plan.assignments, roster);
+    const party = companions.filter((item) => item.party === guest.party).length;
+    const circle = companions.filter((item) => item.side === guest.side).length;
+    return { table, score: party * 100 + circle * 10 - companions.length };
+  }).sort((a, b) => b.score - a.score || a.table.id.localeCompare(b.table.id))[0]?.table ?? null;
+}
+
+export function seatRemaining(plan: SeatingPlan, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables): { plan: SeatingPlan; count: number } {
+  let next = plan;
+  let count = 0;
+  const waiting = roster.filter((guest) => guest.rsvp === "attending" && !next.assignments[guest.id]);
+  for (const guest of waiting) {
+    const table = suggestTable(next, guest.id, roster, floor);
+    if (!table) continue;
+    const result = assignGuest(next, guest.id, table.id, roster, floor);
+    if (result.ok) { next = result.plan; count++; }
+  }
+  return { plan: next, count };
+}
+
 export function planStats(plan: SeatingPlan, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables) {
   const attending = roster.filter((guest) => guest.rsvp === "attending");
   const seated = attending.filter((guest) => floor.some((table) => table.id === plan.assignments[guest.id]));
