@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { initialPlan, tables } from "@/lib/seed";
 import { backupJson, cateringCsv, guestCsv } from "@/lib/export";
+import { parseBackup } from "@/lib/backup";
 import { assignGuest, assignParty, normalizePlan, openSeats, planRoster, planStats, seatRemaining, suggestTable, tableGuests, updateGuest } from "@/lib/seating";
 import type { Guest, SeatingPlan } from "@/lib/types";
 
@@ -20,6 +21,8 @@ export default function Studio() {
   const [notice, setNotice] = useState("");
   const [ready, setReady] = useState(false);
   const exportDialog = useRef<HTMLDialogElement>(null);
+  const resetDialog = useRef<HTMLDialogElement>(null);
+  const backupInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
@@ -70,6 +73,25 @@ export default function Studio() {
     if (result.count) setPlan(result.plan);
     setNotice(result.count ? `${result.count} attending guests placed at open tables. Review their positions before saving.` : "No open seats are available for the remaining attending guests.");
   }
+  async function importBackup(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (file.size > 1_000_000) { setNotice("Choose a plan backup smaller than 1 MB."); exportDialog.current?.close(); return; }
+    try {
+      const result = parseBackup(await file.text());
+      if (!result.ok) { setNotice(result.reason); exportDialog.current?.close(); return; }
+      setPlan(result.plan); setSelectedGuestId(null); setSelectedTableId("t1");
+      setNotice("The backup was restored in this browser. Review the room before continuing.");
+      exportDialog.current?.close();
+    } catch { setNotice("The backup could not be read. The current plan has not changed."); exportDialog.current?.close(); }
+  }
+  function resetPlan() {
+    setPlan(structuredClone(initialPlan)); setSelectedGuestId(null); setSelectedTableId("t1");
+    setQuery(""); setResponse("all"); setSide("all"); setView("room");
+    setNotice("The fictional sample arrangement has been restored in this browser.");
+    resetDialog.current?.close();
+  }
   function download(filename: string, content: string, mime: string) {
     try {
       const url = URL.createObjectURL(new Blob([content], { type: mime }));
@@ -97,7 +119,7 @@ export default function Studio() {
           {view === "roster" && <div className="roster-summary"><p className="eyebrow">THE PEOPLE</p><h3>Gathered with intention.</h3><p>Select any guest to place them in the room. Search by name, party or note, then narrow by response or circle.</p><div className="meal-summary"><div><strong>{stats.meals.garden}</strong><span>Garden menu</span></div><div><strong>{stats.meals.coast}</strong><span>Coast menu</span></div><div><strong>{stats.meals.hearth}</strong><span>Hearth menu</span></div></div><button className="assign-button" onClick={() => setView("room")}>Return to room plan <span>→</span></button></div>}
         </div><div className="studio-footer"><p role="status" aria-live="polite">{notice || "Select a guest, then a table. Changes are saved in this browser."}</p><div className="footer-actions"><button onClick={() => exportDialog.current?.showModal()}>Export plan</button><button onClick={seatAll} disabled={!stats.unseated}>Seat remaining guests</button><button onClick={() => { setPlan({ ...plan, savedAt: new Date().toISOString() }); setNotice("Plan marked saved. This is a private browser preview, not a venue booking."); }}>Mark plan saved</button></div></div>
       </section>
-      <dialog className="export-dialog" ref={exportDialog} aria-labelledby="export-title"><form method="dialog"><button className="dialog-close" aria-label="Close export options">×</button></form><p className="eyebrow">KEEP THE DETAILS CLOSE</p><h2 id="export-title">Take the plan with you.</h2><p>Download a guest roster, a per-table menu tally, or a JSON backup. These files contain fictional details from this browser only.</p><div className="export-options"><button onClick={() => download("ivory-arc-guests.csv", "\uFEFF" + guestCsv(plan), "text/csv;charset=utf-8")}>Guest roster <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-catering.csv", "\uFEFF" + cateringCsv(plan), "text/csv;charset=utf-8")}>Catering tally <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-plan.json", backupJson(plan), "application/json")}>Plan backup <span>JSON ↗</span></button></div></dialog>
+      <dialog className="export-dialog" ref={exportDialog} aria-labelledby="export-title"><form method="dialog"><button className="dialog-close" aria-label="Close export options">×</button></form><p className="eyebrow">KEEP THE DETAILS CLOSE</p><h2 id="export-title">Take the plan with you.</h2><p>Download a guest roster, a per-table menu tally, or a JSON backup. These files contain fictional details from this browser only.</p><div className="export-options"><button onClick={() => download("ivory-arc-guests.csv", "\uFEFF" + guestCsv(plan), "text/csv;charset=utf-8")}>Guest roster <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-catering.csv", "\uFEFF" + cateringCsv(plan), "text/csv;charset=utf-8")}>Catering tally <span>CSV ↗</span></button><button onClick={() => download("ivory-arc-plan.json", backupJson(plan), "application/json")}>Plan backup <span>JSON ↗</span></button></div><div className="manage-options"><input ref={backupInput} type="file" accept=".json,application/json" hidden onChange={importBackup} aria-label="Choose Ivory Arc backup" /><button onClick={() => backupInput.current?.click()}>Restore JSON backup</button><button onClick={() => { exportDialog.current?.close(); resetDialog.current?.showModal(); }}>Reset sample plan</button></div></dialog><dialog className="reset-dialog" ref={resetDialog} aria-labelledby="reset-title"><p className="eyebrow">START FRESH</p><h2 id="reset-title">Restore the sample room?</h2><p>This replaces all guest responses, menu choices and seating changes in this browser. Export a backup first if you want to keep them.</p><div><button onClick={() => resetDialog.current?.close()}>Keep my plan</button><button onClick={resetPlan}>Reset sample</button></div></dialog>
       <footer><span className="brand-mark">I<span>·</span>A</span><p>Make room for what matters.<br /><small>A fictional wedding planning experience. No invitations are sent.</small></p><a href="#top">Back to top ↑</a></footer>
     </main>
   </>;
