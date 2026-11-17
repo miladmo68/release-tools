@@ -46,5 +46,6 @@ export const tables: ReceptionTable[] = [
 
 export const initialPlan: SeatingPlan = {
   assignments: Object.fromEntries(guests.map((guest, index) => [guest.id, index < 2 ? "head" : index < 6 ? "t1" : index < 10 ? "t2" : index < 14 ? "t3" : index < 18 ? "t4" : index < 22 ? "t5" : null])),
+  guestUpdates: {},
   savedAt: null
 };

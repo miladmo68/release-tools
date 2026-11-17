@@ -1,7 +1,20 @@
 import { guests, initialPlan, tables } from "./seed";
-import type { Assignments, Guest, ReceptionTable, SeatingPlan } from "./types";
+import type { Assignments, Guest, Meal, ReceptionTable, RSVP, SeatingPlan } from "./types";
 
 export type SeatingResult = { ok: true; plan: SeatingPlan } | { ok: false; reason: string };
+
+export function planRoster(plan: SeatingPlan, seed: Guest[] = guests): Guest[] {
+  return seed.map((guest) => ({ ...guest, ...plan.guestUpdates[guest.id] }));
+}
+
+export function updateGuest(plan: SeatingPlan, guestId: string, change: { rsvp?: RSVP; meal?: Meal }, seed: Guest[] = guests): SeatingResult {
+  const guest = seed.find((item) => item.id === guestId);
+  if (!guest) return { ok: false, reason: "That guest is no longer in this plan." };
+  if (change.rsvp && !["attending", "pending", "declined"].includes(change.rsvp)) return { ok: false, reason: "Choose a valid response." };
+  if (change.meal && !["garden", "coast", "hearth"].includes(change.meal)) return { ok: false, reason: "Choose a valid menu." };
+  const updated = { ...plan.guestUpdates[guestId], ...change };
+  return { ok: true, plan: { ...plan, guestUpdates: { ...plan.guestUpdates, [guestId]: updated }, assignments: { ...plan.assignments, [guestId]: updated.rsvp && updated.rsvp !== "attending" ? null : plan.assignments[guestId] }, savedAt: null } };
+}
 
 export function tableGuests(tableId: string, assignments: Assignments, roster: Guest[] = guests): Guest[] {
   return roster.filter((guest) => assignments[guest.id] === tableId);
@@ -11,7 +24,7 @@ export function openSeats(table: ReceptionTable, assignments: Assignments, roste
   return table.capacity - tableGuests(table.id, assignments, roster).length;
 }
 
-export function assignGuest(plan: SeatingPlan, guestId: string, tableId: string | null, roster: Guest[] = guests, floor: ReceptionTable[] = tables): SeatingResult {
+export function assignGuest(plan: SeatingPlan, guestId: string, tableId: string | null, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables): SeatingResult {
   const guest = roster.find((item) => item.id === guestId);
   if (!guest) return { ok: false, reason: "That guest is no longer in this plan." };
   if (tableId === null) return { ok: true, plan: { ...plan, assignments: { ...plan.assignments, [guestId]: null }, savedAt: null } };
@@ -23,7 +36,7 @@ export function assignGuest(plan: SeatingPlan, guestId: string, tableId: string 
   return { ok: true, plan: { ...plan, assignments: { ...plan.assignments, [guestId]: tableId }, savedAt: null } };
 }
 
-export function assignParty(plan: SeatingPlan, party: string, tableId: string, roster: Guest[] = guests, floor: ReceptionTable[] = tables): SeatingResult {
+export function assignParty(plan: SeatingPlan, party: string, tableId: string, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables): SeatingResult {
   const table = floor.find((item) => item.id === tableId);
   if (!table) return { ok: false, reason: "Choose a table from the floor plan." };
   const partyGuests = roster.filter((guest) => guest.party === party && guest.rsvp === "attending" && plan.assignments[guest.id] !== tableId);
@@ -31,10 +44,10 @@ export function assignParty(plan: SeatingPlan, party: string, tableId: string, r
   if (openSeats(table, plan.assignments, roster) < partyGuests.length) return { ok: false, reason: `${partyGuests.length} seats are needed, but ${table.name} has ${openSeats(table, plan.assignments, roster)} open.` };
   const assignments = { ...plan.assignments };
   partyGuests.forEach((guest) => { assignments[guest.id] = tableId; });
-  return { ok: true, plan: { assignments, savedAt: null } };
+  return { ok: true, plan: { ...plan, assignments, savedAt: null } };
 }
 
-export function planStats(plan: SeatingPlan, roster: Guest[] = guests, floor: ReceptionTable[] = tables) {
+export function planStats(plan: SeatingPlan, roster: Guest[] = planRoster(plan), floor: ReceptionTable[] = tables) {
   const attending = roster.filter((guest) => guest.rsvp === "attending");
   const seated = attending.filter((guest) => floor.some((table) => table.id === plan.assignments[guest.id]));
   const meals = attending.reduce((count, guest) => ({ ...count, [guest.meal]: count[guest.meal] + 1 }), { garden: 0, coast: 0, hearth: 0 });
@@ -44,13 +57,25 @@ export function planStats(plan: SeatingPlan, roster: Guest[] = guests, floor: Re
 export function normalizePlan(value: unknown, roster: Guest[] = guests, floor: ReceptionTable[] = tables): SeatingPlan {
   if (!value || typeof value !== "object" || !("assignments" in value) || !value.assignments || typeof value.assignments !== "object") return structuredClone(initialPlan);
   const source = value.assignments as Record<string, unknown>;
+  const updatesSource = "guestUpdates" in value && value.guestUpdates && typeof value.guestUpdates === "object" ? value.guestUpdates as Record<string, unknown> : {};
+  const guestUpdates: SeatingPlan["guestUpdates"] = {};
+  for (const guest of roster) {
+    const item = updatesSource[guest.id];
+    if (!item || typeof item !== "object") continue;
+    const candidate = item as Record<string, unknown>;
+    guestUpdates[guest.id] = {
+      ...(candidate.rsvp === "attending" || candidate.rsvp === "pending" || candidate.rsvp === "declined" ? { rsvp: candidate.rsvp } : {}),
+      ...(candidate.meal === "garden" || candidate.meal === "coast" || candidate.meal === "hearth" ? { meal: candidate.meal } : {})
+    };
+  }
+  const currentRoster = planRoster({ assignments: {}, guestUpdates, savedAt: null }, roster);
   const assignments: Assignments = {};
   const used: Record<string, number> = {};
-  for (const guest of roster) {
+  for (const guest of currentRoster) {
     const id = source[guest.id];
     const table = floor.find((item) => item.id === id);
     if (!table || guest.rsvp !== "attending" || (used[table.id] ?? 0) >= table.capacity) assignments[guest.id] = null;
     else { assignments[guest.id] = table.id; used[table.id] = (used[table.id] ?? 0) + 1; }
   }
-  return { assignments, savedAt: "savedAt" in value && typeof value.savedAt === "string" ? value.savedAt : null };
+  return { assignments, guestUpdates, savedAt: "savedAt" in value && typeof value.savedAt === "string" ? value.savedAt : null };
 }

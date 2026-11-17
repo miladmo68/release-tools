@@ -25,5 +25,6 @@ export type Assignments = Record<string, string | null>;
 
 export interface SeatingPlan {
   assignments: Assignments;
+  guestUpdates: Record<string, { rsvp?: RSVP; meal?: Meal }>;
   savedAt: string | null;
 }
