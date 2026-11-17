@@ -33,11 +33,11 @@ async function check(width, height, name) {
   await page.getByLabel("Circle").selectOption("Friends");
   assert.ok(await page.locator(".guest-row").count()>0);
   await page.getByLabel("Circle").selectOption("all");
-  await page.getByLabel("Response",{exact:true}).first().selectOption("pending");
+  await page.locator(".filters select").first().selectOption("pending");
   assert.ok(await page.locator(".guest-row").count()>0);
-  await page.getByLabel("Response",{exact:true}).first().selectOption("all");
+  await page.locator(".filters select").first().selectOption("all");
   await page.locator(".guest-row").first().click();
-  await page.getByRole("button",{name:/Table 01/}).click();
+  await page.locator(".table-node").filter({hasText:"01"}).click();
   await page.getByRole("button",{name:/Seat selected guest/}).click();
   await page.getByRole("button",{name:/Suggest the best open table/}).click();
   await page.getByRole("button",{name:/Seat their attending party together/}).click();
