@@ -83,7 +83,9 @@ async function check(width, height, name) {
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=1,`${name} horizontal overflow ${overflow}`);
   await mkdir(join(process.cwd(),"public","screenshots"),{recursive:true});
+  await page.evaluate(()=>localStorage.clear());
   await page.goto(`${origin}${base}/`,{waitUntil:"networkidle"});
+  assert.equal((await page.locator(".intro-count b").textContent())?.trim(),"26");
   await page.screenshot({path:join(process.cwd(),"public","screenshots",`${name}.png`),fullPage:true});
   console.log(`${name} ${width}x${height}: navigation, keyboard, tabs, filters, seating, edits, exports, invalid/valid import, persistence, reset, print, imagery, overflow passed`);
   await context.close();
