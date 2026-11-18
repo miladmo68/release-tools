@@ -27,6 +27,11 @@ async function check(width, height, name) {
     await page.getByRole("navigation",{name:"Main navigation"}).getByRole("link",{name:label}).click();
     assert.equal(new URL(page.url()).hash,target);
   }
+  await page.getByRole("tab",{name:"Room plan"}).focus();
+  await page.keyboard.press("ArrowRight");
+  assert.equal(await page.getByRole("tab",{name:/Guest roster/}).getAttribute("aria-selected"),"true");
+  await page.keyboard.press("Home");
+  assert.equal(await page.getByRole("tab",{name:"Room plan"}).getAttribute("aria-selected"),"true");
   await page.getByRole("tab",{name:/Guest roster/}).click();
   await page.getByRole("heading",{name:"Gathered with intention."}).waitFor();
   await page.getByRole("tab",{name:"Room plan"}).click();
