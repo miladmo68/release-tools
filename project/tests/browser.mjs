@@ -2,6 +2,7 @@ import { chromium } from "playwright";
 import { readFile, mkdir } from "node:fs/promises";
 import { join, extname } from "node:path";
 import assert from "node:assert/strict";
+import { buffer as streamBuffer } from "node:stream/consumers";
 const base = "/ivory-arc-wedding-studio", origin = "https://ivory-arc.test";
 const mime = { ".html":"text/html", ".js":"text/javascript", ".css":"text/css", ".jpg":"image/jpeg", ".png":"image/png", ".svg":"image/svg+xml" };
 const browser = await chromium.launch({ headless:true, ...(process.env.CHROMIUM_PATH ? { executablePath:process.env.CHROMIUM_PATH } : {}) });
@@ -19,6 +20,8 @@ async function check(width, height, name) {
   });
   assert.equal((await page.goto(`${origin}${base}/`,{waitUntil:"networkidle"}))?.status(),200);
   await page.getByRole("heading",{name:/Every seat tells a story/i}).waitFor();
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(()=>document.activeElement?.textContent?.trim()),"Skip to seating studio");
   await page.locator(".hero-visual").evaluate(async e=>{ const i=new Image();i.src=getComputedStyle(e).backgroundImage.slice(5,-2);await i.decode();if(!i.naturalWidth)throw Error("Image missing") });
   for (const [label,target] of [["The story","#story"],["Seating studio","#studio"],["The details","#details"]]) {
     await page.getByRole("navigation",{name:"Main navigation"}).getByRole("link",{name:label}).click();
@@ -46,10 +49,12 @@ async function check(width, height, name) {
   await page.getByRole("button",{name:"Seat remaining guests"}).click();
   await page.getByRole("button",{name:"Mark plan saved"}).click();
   await page.getByRole("button",{name:"Export plan"}).click();
+  let backupBytes;
   for(const [label,filename] of [[/Guest roster CSV/,"ivory-arc-guests.csv"],[/Catering tally CSV/,"ivory-arc-catering.csv"],[/Plan backup JSON/,"ivory-arc-plan.json"]]){
     if(!await page.locator(".export-dialog").evaluate(e=>e.open))await page.getByRole("button",{name:"Export plan"}).click();
     const [download]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:label}).click()]);
     assert.equal(download.suggestedFilename(),filename);
+    if(filename.endsWith(".json")) backupBytes=await streamBuffer(await download.createReadStream());
   }
   await page.reload({waitUntil:"networkidle"});
   await page.getByText(/Plan marked saved/).waitFor();
@@ -60,13 +65,22 @@ async function check(width, height, name) {
   await page.getByRole("button",{name:"Reset sample plan"}).click();
   await page.getByRole("button",{name:"Reset sample",exact:true}).click();
   await page.getByText(/sample arrangement has been restored/).waitFor();
+  await page.getByRole("button",{name:"Export plan"}).click();
+  await page.locator("input[type=file]").setInputFiles({name:"invalid.json",mimeType:"application/json",buffer:Buffer.from("not json")});
+  await page.getByRole("status").getByText(/not valid JSON/i).waitFor();
+  await page.getByRole("button",{name:"Export plan"}).click();
+  await page.locator("input[type=file]").setInputFiles({name:"plan.json",mimeType:"application/json",buffer:backupBytes});
+  await page.getByText(/backup was restored/).waitFor();
+  await page.evaluate(()=>{window.__printCalled=false;window.print=()=>{window.__printCalled=true}});
+  await page.getByRole("button",{name:"Print room plan"}).click();
+  assert.equal(await page.evaluate(()=>window.__printCalled),true);
   assert.equal(errors.length,0,errors.join("; "));
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
   assert.ok(overflow<=1,`${name} horizontal overflow ${overflow}`);
   await mkdir(join(process.cwd(),"public","screenshots"),{recursive:true});
   await page.goto(`${origin}${base}/`,{waitUntil:"networkidle"});
   await page.screenshot({path:join(process.cwd(),"public","screenshots",`${name}.png`),fullPage:true});
-  console.log(`${name} ${width}x${height}: navigation, tabs, filters, seating, edits, exports, persistence, reset, imagery, overflow passed`);
+  console.log(`${name} ${width}x${height}: navigation, keyboard, tabs, filters, seating, edits, exports, invalid/valid import, persistence, reset, print, imagery, overflow passed`);
   await context.close();
 }
 try { await check(1440,900,"desktop"); await check(390,844,"mobile"); }
