@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { devices, repairs, serviceSlots, type DeviceKind, type SymptomId } from "./domain/catalog";
 import { createEstimate } from "./domain/estimate";
+import { readPlans, removePlan, savePlan, type VisitPlan } from "./domain/plans";
 
 type Step = "device" | "issues" | "estimate" | "intake";
 const money = (value: number) => new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(value);
@@ -41,5 +42,23 @@ export default function App() {
 
 function IntakePanel({ deviceId, symptoms, total, onBack }: { deviceId: string; symptoms: SymptomId[]; total: number; onBack: () => void }) {
   const [slotId, setSlotId] = useState("");
-  return <section aria-labelledby="intake-title"><div className="panel-kicker">NEXT STEP <span>04 / 04</span></div><h3 id="intake-title">Make room for repair.</h3><p className="panel-intro">Choose an illustrative visit window. We’ll ask for a few details to save a private plan in this browser.</p><div className="slots" role="group" aria-label="Available visit windows">{serviceSlots.map((slot) => <button type="button" key={slot.id} disabled={!slot.remaining} aria-pressed={slot.id === slotId} className={slot.id === slotId ? "slot selected" : "slot"} onClick={() => setSlotId(slot.id)}><strong>{slot.date}</strong><span>{slot.time}</span><small>{slot.remaining ? `${slot.remaining} openings` : "Fully booked"}</small></button>)}</div><div className="panel-actions"><button className="text-action" type="button" onClick={onBack}>← Back to estimate</button><span className="intake-hint">{slotId ? `Selected · ${money(total)} estimate` : "Select a window to continue"}</span></div><span className="hidden">{deviceId} {symptoms.join(",")}</span></section>;
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState<VisitPlan | null>(null);
+  const [plans, setPlans] = useState<VisitPlan[]>(() => readPlans());
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      const plan = savePlan({ deviceId, symptoms, slotId, name: name.trim(), email: email.trim(), notes: notes.trim() });
+      setSaved(plan); setPlans(readPlans()); setError("");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not save this plan."); }
+  };
+  return <section aria-labelledby="intake-title"><div className="panel-kicker">NEXT STEP <span>04 / 04</span></div><h3 id="intake-title">Make room for repair.</h3><p className="panel-intro">Choose an illustrative visit window, then save a private plan in this browser. Nothing is sent to a real shop.</p>
+    {saved ? <div className="confirmation" role="status"><span className="confirm-symbol">✓</span><h4>Your plan is ready.</h4><p>Reference <strong>{saved.reference}</strong> is saved only in this browser. No visit has been booked and no message has been sent.</p><button type="button" className="primary-action" onClick={() => { setSaved(null); setName(""); setEmail(""); setNotes(""); setSlotId(""); }}>Plan another repair →</button></div> : <>
+    <div className="slots" role="group" aria-label="Available visit windows">{serviceSlots.map((slot) => <button type="button" key={slot.id} disabled={!slot.remaining} aria-pressed={slot.id === slotId} className={slot.id === slotId ? "slot selected" : "slot"} onClick={() => { setSlotId(slot.id); setError(""); }}><strong>{slot.date}</strong><span>{slot.time}</span><small>{slot.remaining ? `${slot.remaining} openings` : "Fully booked"}</small></button>)}</div>
+    <form className="intake-form" onSubmit={submit} noValidate><div className="form-row"><label>Your name<input autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={80} placeholder="Alex Morgan" /></label><label>Email for this draft<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={160} placeholder="alex@example.com" /></label></div><label>Anything else we should know? <span>(optional)</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={500} rows={3} placeholder="Tell us when the issue began…" /></label>{error && <p className="form-error" role="alert">{error}</p>}<div className="panel-actions"><button className="text-action" type="button" onClick={onBack}>← Back to estimate</button><button type="submit" className="primary-action">Save visit preview <span aria-hidden="true">→</span></button></div><p className="intake-hint">{slotId ? `Selected window · ${money(total)} estimate` : "Select a window to save your plan"}</p></form></>}
+    {plans.length > 0 && <div className="saved-plans"><h4>Saved in this browser</h4>{plans.map((plan) => <div className="saved-plan" key={plan.reference}><div><strong>{plan.reference}</strong><small>{devices.find((device) => device.id === plan.deviceId)?.name} · {serviceSlots.find((slot) => slot.id === plan.slotId)?.date} {serviceSlots.find((slot) => slot.id === plan.slotId)?.time}</small></div><button type="button" onClick={() => { removePlan(plan.reference); setPlans(readPlans()); if (saved?.reference === plan.reference) setSaved(null); }} aria-label={`Remove plan ${plan.reference}`}>Remove</button></div>)}</div>}
+  </section>;
 }
