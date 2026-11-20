@@ -28,7 +28,8 @@ export function createApp(repository) {
       response.json(item);
     } catch (error) { next(error); }
   });
-  app.use((error, _request, response, _next) => {
+  app.use((error, _request, response, next) => {
+    void next;
     if (error instanceof ZodError) return response.status(400).json({ error: "Check the highlighted fields", issues: error.flatten() });
     if (error instanceof SyntaxError && "body" in error) return response.status(400).json({ error: "Invalid JSON" });
     if (error.message === "Invalid status") return response.status(400).json({ error: error.message });
