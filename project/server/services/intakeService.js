@@ -9,7 +9,9 @@ export function createIntakeService(repository) {
       if (value.symptoms.some((id) => !jsonCatalogRepository.listRepairs().some((repair) => repair.id === id && repair.eligible.includes(device.kind)))) {
         throw new RangeError("Choose issues supported for this device.");
       }
-      if (!jsonCatalogRepository.listSlots().some((slot) => slot.id === value.slotId && slot.remaining > 0)) {
+      const slot = jsonCatalogRepository.listSlots().find((item) => item.id === value.slotId);
+      const used = (await repository.list()).filter((item) => item.slotId === value.slotId).length;
+      if (!slot || used >= slot.remaining) {
         throw new RangeError("Choose an available illustrative window.");
       }
       const reference = `TD-${Date.now().toString(36).toUpperCase()}`;

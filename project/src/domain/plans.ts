@@ -18,7 +18,7 @@ export function validateVisitPlan(value: Omit<VisitPlan, "reference" | "createdA
   const device = devices.find((item) => item.id === value.deviceId);
   if (!device) return "Choose a supported device.";
   if (!value.symptoms.length || value.symptoms.some((id) => !repairs.some((repair) => repair.id === id && repair.eligible.includes(device.kind)))) return "Choose at least one supported issue.";
-  if (!serviceSlots.some((slot) => slot.id === value.slotId && slot.remaining > 0)) return "Choose an available visit window.";
+  if (remainingInBrowser(value.slotId) < 1) return "That illustrative window is full in this browser. Choose another.";
   if (value.name.trim().length < 2 || value.name.trim().length > 80) return "Enter a name between 2 and 80 characters.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email) || value.email.length > 160) return "Enter a valid email address.";
   if (value.notes.length > 500) return "Keep the notes under 500 characters.";
@@ -30,6 +30,11 @@ export function readPlans(): VisitPlan[] {
     const value = JSON.parse(localStorage.getItem(storageKey) || "[]");
     return Array.isArray(value) ? value.filter((item) => item && typeof item.reference === "string") : [];
   } catch { return []; }
+}
+
+export function remainingInBrowser(slotId: string): number {
+  const slot = serviceSlots.find((item) => item.id === slotId);
+  return Math.max(0, (slot?.remaining ?? 0) - readPlans().filter((item) => item.slotId === slotId).length);
 }
 
 export function savePlan(input: Omit<VisitPlan, "reference" | "createdAt" | "status">): VisitPlan {

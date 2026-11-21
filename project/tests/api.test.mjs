@@ -35,3 +35,16 @@ test("intake API validates, creates, looks up and advances a ticket", async () =
     assert.equal(missing.status, 404);
   } finally { await new Promise((resolve) => server.close(resolve)); }
 });
+
+test("intake API rejects unsupported symptoms and full demo windows", async () => {
+  const server = createApp(memory()).listen(0);
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const send = (body) => fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const baseInput = { deviceId: "phone-01", symptoms: ["screen"], customer: { name: "Test Person", email: "test@example.com" }, slotId: "tue-14", notes: "" };
+    assert.equal((await send({ ...baseInput, deviceId: "laptop-01", symptoms: ["camera"] })).status, 400);
+    assert.equal((await send({ ...baseInput, slotId: "wed-11" })).status, 400);
+    assert.equal((await send(baseInput)).status, 201);
+    assert.equal((await send(baseInput)).status, 400);
+  } finally { await new Promise((resolve) => server.close(resolve)); }
+});
