@@ -15,8 +15,9 @@ export interface VisitPlan {
 const storageKey = "tandem.visit-plans.v1";
 
 export function validateVisitPlan(value: Omit<VisitPlan, "reference" | "createdAt" | "status">): string | null {
-  if (!devices.some((device) => device.id === value.deviceId)) return "Choose a supported device.";
-  if (!value.symptoms.length || value.symptoms.some((id) => !repairs.some((repair) => repair.id === id))) return "Choose at least one issue.";
+  const device = devices.find((item) => item.id === value.deviceId);
+  if (!device) return "Choose a supported device.";
+  if (!value.symptoms.length || value.symptoms.some((id) => !repairs.some((repair) => repair.id === id && repair.eligible.includes(device.kind)))) return "Choose at least one supported issue.";
   if (!serviceSlots.some((slot) => slot.id === value.slotId && slot.remaining > 0)) return "Choose an available visit window.";
   if (value.name.trim().length < 2 || value.name.trim().length > 80) return "Enter a name between 2 and 80 characters.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email) || value.email.length > 160) return "Enter a valid email address.";

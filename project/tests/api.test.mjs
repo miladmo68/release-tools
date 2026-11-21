@@ -23,7 +23,7 @@ test("intake API validates, creates, looks up and advances a ticket", async () =
     const base = `http://127.0.0.1:${server.address().port}`;
     const invalid = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId: "unknown" }) });
     assert.equal(invalid.status, 400);
-    const created = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId: "phone-01", symptoms: ["screen"], customer: { name: "Test Person", email: "test@example.com" }, slotId: "2026-12-01-10", notes: "Touch is intermittent" }) });
+    const created = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId: "phone-01", symptoms: ["screen"], customer: { name: "Test Person", email: "test@example.com" }, slotId: "tue-10", notes: "Touch is intermittent" }) });
     assert.equal(created.status, 201);
     const ticket = await created.json();
     assert.match(ticket.reference, /^TD-/);
