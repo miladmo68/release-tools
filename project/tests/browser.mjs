@@ -100,6 +100,8 @@ async function phone(browser) {
   await page.getByText("Family tablet").last().waitFor();
   await page.keyboard.press("Escape");
   await noOverflow(page, "Phone");
+  await page.goto(baseURL, { waitUntil: "networkidle" });
+  await page.locator("h1").click();
   await page.screenshot({ path: "public/screenshots/mobile.png", fullPage: true });
   await context.close();
 }
