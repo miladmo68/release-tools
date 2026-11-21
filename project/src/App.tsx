@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { devices, repairs, serviceSlots, type DeviceKind, type SymptomId } from "./domain/catalog";
 import { createEstimate } from "./domain/estimate";
 import { readPlans, removePlan, savePlan, type VisitPlan } from "./domain/plans";
+import { SavedPlansDialog } from "./components/SavedPlansDialog";
 
 type Step = "device" | "issues" | "estimate" | "intake";
 const money = (value: number) => new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(value);
@@ -12,6 +13,7 @@ export default function App() {
   const [deviceId, setDeviceId] = useState("phone-01");
   const [symptoms, setSymptoms] = useState<SymptomId[]>([]);
   const [showInfo, setShowInfo] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const estimate = useMemo(() => symptoms.length ? createEstimate(deviceId, symptoms) : null, [deviceId, symptoms]);
   const chosenDevice = devices.find((device) => device.id === deviceId)!;
   const order: Step[] = ["device", "issues", "estimate", "intake"];
@@ -20,7 +22,7 @@ export default function App() {
 
   return <div className="app-shell">
     <header className="site-header"><a className="brand" href="#home" onClick={() => setStep("device")} aria-label="Tandem home"><span className="brand-mark">t<span>•</span></span><span>TANDEM<span className="brand-sub">DEVICE STUDIO</span></span></a>
-      <nav aria-label="Primary"><button type="button" onClick={() => setStep("device")}>Start a repair</button><button type="button" onClick={() => setShowInfo(true)}>How it works</button><a href="#service">Our approach</a></nav>
+      <nav aria-label="Primary"><button type="button" onClick={() => setStep("device")}>Start a repair</button><button type="button" onClick={() => setShowInfo(true)}>How it works</button><button type="button" onClick={() => setShowPlans(true)}>Saved plans</button><a href="#service">Our approach</a></nav>
       <span className="header-aside">Clear work. Considered care.</span></header>
 
     <main id="home"><section className="hero"><div className="hero-copy"><span className="eyebrow"><i /> A better way back to working</span><h1>Good things<br/><em>are worth fixing.</em></h1><p>Tell us what happened to your device. Build a clear, itemised repair plan and see the next available studio times.</p><button className="hero-cta" type="button" onClick={() => document.getElementById("workbench")?.scrollIntoView({ behavior: "smooth" })}>Explore your repair <span aria-hidden="true">↗</span></button></div><div className="hero-art"><img src={`${import.meta.env.BASE_URL}images/repair-circuit.jpg`} alt="Disassembled phone circuit board and precision screwdriver on a repair mat" fetchPriority="high"/><div className="photo-stamp" aria-hidden="true"><span>01</span><strong>Every detail<br/>matters.</strong></div><span className="hero-art-caption">REPAIR, RECONSIDER, REUSE — 01</span></div></section>
@@ -37,6 +39,7 @@ export default function App() {
     <section id="service" className="service-band"><div className="service-intro"><div><span className="eyebrow">Why repair with care</span><h2>Less mystery.<br/><em>More life.</em></h2></div><img src={`${import.meta.env.BASE_URL}images/repair-detail.jpg`} alt="Close detail of an unbranded circuit board and precision tool" loading="lazy"/></div><div className="service-points"><div><span>01</span><h3>Know the work</h3><p>Itemised parts and labour help you understand the likely repair before making a plan.</p></div><div><span>02</span><h3>Choose the timing</h3><p>See illustrative visit windows and select what fits your day.</p></div><div><span>03</span><h3>Keep it going</h3><p>A thoughtful repair can give a familiar device more useful years.</p></div></div></section></main>
     <footer><strong>TANDEM <span>DEVICE STUDIO</span></strong><p>An illustrative repair planning experience. No booking, payment or repair service is created here.</p><button type="button" onClick={() => { setStep("device"); document.getElementById("workbench")?.scrollIntoView(); }}>Back to the workbench ↑</button></footer>
     {showInfo && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowInfo(false); }}><div className="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-title"><button className="modal-close" type="button" onClick={() => setShowInfo(false)} aria-label="Close dialog">×</button><span className="eyebrow">How Tandem works</span><h2 id="info-title">A repair plan in four steps.</h2><ol><li>Find a device family.</li><li>Choose the symptoms you notice.</li><li>Review an itemised illustrative estimate.</li><li>Save a visit preview in this browser.</li></ol><p>All prices, time slots and records are fictional. Nothing is sent to a repair shop.</p><button className="primary-action" type="button" onClick={() => setShowInfo(false)}>Got it</button></div></div>}
+    {showPlans && <SavedPlansDialog onClose={() => setShowPlans(false)} onStart={() => { setShowPlans(false); setStep("device"); document.getElementById("workbench")?.scrollIntoView(); }}/>} 
   </div>;
 }
 
