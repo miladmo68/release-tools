@@ -13,6 +13,7 @@ export interface VisitPlan {
 }
 
 const storageKey = "tandem.visit-plans.v1";
+export const plansChangedEvent = "tandem:plans-changed";
 
 export function validateVisitPlan(value: Omit<VisitPlan, "reference" | "createdAt" | "status">): string | null {
   const device = devices.find((item) => item.id === value.deviceId);
@@ -28,7 +29,7 @@ export function validateVisitPlan(value: Omit<VisitPlan, "reference" | "createdA
 export function readPlans(): VisitPlan[] {
   try {
     const value = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return Array.isArray(value) ? value.filter((item) => item && typeof item.reference === "string") : [];
+    return Array.isArray(value) ? value.filter((item) => item && typeof item.reference === "string" && devices.some((device) => device.id === item.deviceId) && Array.isArray(item.symptoms) && item.symptoms.length > 0 && item.symptoms.every((id: SymptomId) => repairs.some((repair) => repair.id === id)) && serviceSlots.some((slot) => slot.id === item.slotId) && typeof item.name === "string" && typeof item.email === "string") : [];
   } catch { return []; }
 }
 
@@ -41,10 +42,14 @@ export function savePlan(input: Omit<VisitPlan, "reference" | "createdAt" | "sta
   const error = validateVisitPlan(input);
   if (error) throw new Error(error);
   const plan: VisitPlan = { ...input, reference: `TD-${Date.now().toString(36).toUpperCase()}`, createdAt: new Date().toISOString(), status: "draft" };
-  localStorage.setItem(storageKey, JSON.stringify([plan, ...readPlans()].slice(0, 20)));
+  try { localStorage.setItem(storageKey, JSON.stringify([plan, ...readPlans()].slice(0, 20))); }
+  catch { throw new Error("This browser could not save the plan. Check that local storage is enabled."); }
+  window.dispatchEvent(new Event(plansChangedEvent));
   return plan;
 }
 
 export function removePlan(reference: string) {
-  localStorage.setItem(storageKey, JSON.stringify(readPlans().filter((plan) => plan.reference !== reference)));
+  try { localStorage.setItem(storageKey, JSON.stringify(readPlans().filter((plan) => plan.reference !== reference))); }
+  catch { throw new Error("This browser could not remove the plan. Try again after checking local storage."); }
+  window.dispatchEvent(new Event(plansChangedEvent));
 }

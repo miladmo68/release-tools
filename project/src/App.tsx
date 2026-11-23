@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { devices, repairs, serviceSlots, type DeviceKind, type SymptomId } from "./domain/catalog";
 import { createEstimate } from "./domain/estimate";
-import { readPlans, removePlan, savePlan, type VisitPlan } from "./domain/plans";
+import { plansChangedEvent, readPlans, removePlan, savePlan, type VisitPlan } from "./domain/plans";
 import { SavedPlansDialog } from "./components/SavedPlansDialog";
 import { InfoDialog } from "./components/InfoDialog";
 
@@ -50,8 +50,15 @@ function IntakePanel({ deviceId, symptoms, total, onBack }: { deviceId: string; 
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const [removeError, setRemoveError] = useState("");
   const [saved, setSaved] = useState<VisitPlan | null>(null);
   const [plans, setPlans] = useState<VisitPlan[]>(() => readPlans());
+  useEffect(() => {
+    const refresh = () => setPlans(readPlans());
+    window.addEventListener(plansChangedEvent, refresh);
+    window.addEventListener("storage", refresh);
+    return () => { window.removeEventListener(plansChangedEvent, refresh); window.removeEventListener("storage", refresh); };
+  }, []);
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -63,6 +70,6 @@ function IntakePanel({ deviceId, symptoms, total, onBack }: { deviceId: string; 
     {saved ? <div className="confirmation" role="status"><span className="confirm-symbol">✓</span><h4>Your plan is ready.</h4><p>Reference <strong>{saved.reference}</strong> is saved only in this browser. No visit has been booked and no message has been sent.</p><button type="button" className="primary-action" onClick={() => { setSaved(null); setName(""); setEmail(""); setNotes(""); setSlotId(""); }}>Plan another repair →</button></div> : <>
     <div className="slots" role="group" aria-label="Illustrative visit windows">{serviceSlots.map((slot) => { const remaining = Math.max(0, slot.remaining - plans.filter((plan) => plan.slotId === slot.id).length); return <button type="button" key={slot.id} disabled={!remaining} aria-pressed={slot.id === slotId} className={slot.id === slotId ? "slot selected" : "slot"} onClick={() => { setSlotId(slot.id); setError(""); }}><strong>{slot.date}</strong><span>{slot.time}</span><small>{remaining ? `${remaining} demo openings` : "Full in demo"}</small></button>; })}</div>
     <form className="intake-form" onSubmit={submit} noValidate><div className="form-row"><label>Your name<input autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={80} placeholder="Alex Morgan" /></label><label>Email for this draft<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required maxLength={160} placeholder="alex@example.com" /></label></div><label>Anything else we should know? <span>(optional)</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={500} rows={3} placeholder="Tell us when the issue began…" /></label>{error && <p className="form-error" role="alert">{error}</p>}<div className="panel-actions"><button className="text-action" type="button" onClick={onBack}>← Back to estimate</button><button type="submit" className="primary-action">Save visit preview <span aria-hidden="true">→</span></button></div><p className="intake-hint">{slotId ? `Selected window · ${money(total)} estimate` : "Select a window to save your plan"}</p></form></>}
-    {plans.length > 0 && <div className="saved-plans"><h4>Saved in this browser</h4>{plans.map((plan) => <div className="saved-plan" key={plan.reference}><div><strong>{plan.reference}</strong><small>{devices.find((device) => device.id === plan.deviceId)?.name} · {serviceSlots.find((slot) => slot.id === plan.slotId)?.date} {serviceSlots.find((slot) => slot.id === plan.slotId)?.time}</small></div><button type="button" onClick={() => { removePlan(plan.reference); setPlans(readPlans()); if (saved?.reference === plan.reference) setSaved(null); }} aria-label={`Remove plan ${plan.reference}`}>Remove</button></div>)}</div>}
+    {plans.length > 0 && <div className="saved-plans"><h4>Saved in this browser</h4>{removeError && <p className="form-error" role="alert">{removeError}</p>}{plans.map((plan) => <div className="saved-plan" key={plan.reference}><div><strong>{plan.reference}</strong><small>{devices.find((device) => device.id === plan.deviceId)?.name} · {serviceSlots.find((slot) => slot.id === plan.slotId)?.date} {serviceSlots.find((slot) => slot.id === plan.slotId)?.time}</small></div><button type="button" onClick={() => { try { removePlan(plan.reference); setPlans(readPlans()); setRemoveError(""); if (saved?.reference === plan.reference) setSaved(null); } catch { setRemoveError("Could not remove this draft. Check browser storage and try again."); } }} aria-label={`Remove plan ${plan.reference}`}>Remove</button></div>)}</div>}
   </section>;
 }
