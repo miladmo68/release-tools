@@ -99,6 +99,12 @@ async function phone(browser) {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
   await imagesLoaded(page);
+  for (const name of ["How it works", "Saved plans"]) {
+    const height = await page.getByRole("button", { name }).evaluate((button) => button.getBoundingClientRect().height);
+    assert.ok(height >= 44, `${name} has a small phone touch target`);
+  }
+  await page.getByRole("button", { name: "How it works" }).click();
+  await page.getByRole("button", { name: "Got it" }).click();
   await page.getByRole("button", { name: "Saved plans" }).click();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /Explore your repair/ }).click();
