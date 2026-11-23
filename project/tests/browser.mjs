@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 
 const baseURL = "http://127.0.0.1:4173/tandem-device-studio/";
@@ -35,6 +35,9 @@ async function desktop(browser) {
   await imagesLoaded(page);
   await page.getByRole("button", { name: "How it works" }).click();
   assert.equal(await page.getByRole("dialog", { name: /A repair plan/ }).isVisible(), true);
+  assert.equal(await page.getByRole("button", { name: "Close dialog" }).evaluate((button) => button === document.activeElement), true, "Dialog should receive keyboard focus");
+  await page.keyboard.press("Shift+Tab");
+  assert.equal(await page.getByRole("button", { name: "Got it" }).evaluate((button) => button === document.activeElement), true, "Dialog should trap reverse tabbing");
   await page.keyboard.press("Escape");
   assert.equal(await page.getByRole("dialog").count(), 0, "Escape should close the dialog");
   await page.getByRole("button", { name: "Saved plans" }).click();
@@ -49,7 +52,9 @@ async function desktop(browser) {
   await page.getByRole("button", { name: /Short battery life/ }).click();
   await page.getByRole("button", { name: /See my estimate/ }).click();
   assert.equal(await page.locator(".estimate-line").count(), 2, "Estimate must itemise both issues");
+  await noOverflow(page, "Desktop estimate");
   await page.getByRole("button", { name: "Plan a visit", exact: true }).click();
+  assert.equal(await page.getByRole("button", { name: /Wednesday window 11:00 AM/ }).isDisabled(), true, "Full demo window must be disabled");
   await page.getByRole("button", { name: /Save visit preview/ }).click();
   await page.getByRole("alert").getByText(/window/i).waitFor();
   await page.getByRole("button", { name: /Tuesday window 2:00 PM/ }).click();
@@ -57,15 +62,27 @@ async function desktop(browser) {
   await page.getByLabel("Email for this draft").fill("avery@example.com");
   await page.getByRole("button", { name: /Save visit preview/ }).click();
   await page.getByText("Your plan is ready.").waitFor();
+  await noOverflow(page, "Desktop confirmation");
   await page.getByRole("button", { name: /Plan another repair/ }).click();
   assert.equal(await page.getByRole("button", { name: /Tuesday window 2:00 PM/ }).isDisabled(), true, "Local draft should consume one demo opening");
   await page.getByRole("button", { name: "Saved plans" }).click();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: /Download plan/ }).click();
-  assert.match((await download).suggestedFilename(), /^td-.*-repair-plan\.json$/);
+  const savedFile = await download;
+  assert.match(savedFile.suggestedFilename(), /^td-.*-repair-plan\.json$/);
+  const exported = JSON.parse(await readFile(await savedFile.path(), "utf8"));
+  assert.equal(exported.deviceId, "phone-02");
+  assert.equal(exported.symptoms.length, 2);
+  assert.equal(exported.status, "draft");
   await page.getByRole("button", { name: "Remove draft" }).click();
   await page.getByText("Nothing on the bench yet.").waitFor();
   await page.keyboard.press("Escape");
+  assert.equal(await page.getByRole("button", { name: /Tuesday window 2:00 PM/ }).isEnabled(), true, "Removing a draft must release its demo window");
+  await page.evaluate(() => localStorage.setItem("tandem.visit-plans.v1", "broken-json"));
+  await page.getByRole("button", { name: "Saved plans" }).click();
+  await page.getByText("Nothing on the bench yet.").waitFor();
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => localStorage.clear());
   await page.getByRole("link", { name: "Our approach" }).click();
   assert.equal(await page.getByRole("heading", { name: /Less mystery/ }).isVisible(), true);
   await page.getByRole("button", { name: /Back to the workbench/ }).click();

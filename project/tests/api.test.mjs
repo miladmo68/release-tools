@@ -21,8 +21,15 @@ test("intake API validates, creates, looks up and advances a ticket", async () =
   const server = createApp(memory()).listen(0);
   try {
     const base = `http://127.0.0.1:${server.address().port}`;
+    const catalogResponse = await fetch(`${base}/api/catalog`);
+    assert.equal(catalogResponse.status, 200);
+    const catalog = await catalogResponse.json();
+    assert.equal(catalog.devices.length, 4);
+    assert.equal(catalog.repairs.length, 6);
     const invalid = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId: "unknown" }) });
     assert.equal(invalid.status, 400);
+    const malformed = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: "{" });
+    assert.equal(malformed.status, 400);
     const created = await fetch(`${base}/api/intakes`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId: "phone-01", symptoms: ["screen"], customer: { name: "Test Person", email: "test@example.com" }, slotId: "tue-10", notes: "Touch is intermittent" }) });
     assert.equal(created.status, 201);
     const ticket = await created.json();
