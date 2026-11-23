@@ -1,6 +1,6 @@
 import express from "express";
 import { ZodError } from "zod";
-import { createIntakeService } from "./services/intakeService.js";
+import { createIntakeService, WorkflowConflictError } from "./services/intakeService.js";
 import { jsonCatalogRepository } from "./repositories/jsonCatalogRepository.js";
 
 export function createApp(repository) {
@@ -34,6 +34,7 @@ export function createApp(repository) {
     void next;
     if (error instanceof ZodError) return response.status(400).json({ error: "Check the highlighted fields", issues: error.flatten() });
     if (error instanceof RangeError) return response.status(400).json({ error: error.message });
+    if (error instanceof WorkflowConflictError) return response.status(409).json({ error: error.message });
     if (error instanceof SyntaxError && "body" in error) return response.status(400).json({ error: "Invalid JSON" });
     if (error.message === "Invalid status") return response.status(400).json({ error: error.message });
     response.status(500).json({ error: "Something went wrong. Please try again." });

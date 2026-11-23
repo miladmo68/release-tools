@@ -1,6 +1,15 @@
 import { intakeInput } from "../validation/intake.js";
 import { jsonCatalogRepository } from "../repositories/jsonCatalogRepository.js";
 
+const transitions = {
+  requested: ["inspecting"],
+  inspecting: ["awaiting-parts", "ready"],
+  "awaiting-parts": ["inspecting", "ready"],
+  ready: [],
+};
+
+export class WorkflowConflictError extends Error {}
+
 export function createIntakeService(repository) {
   return {
     async create(raw) {
@@ -21,7 +30,12 @@ export function createIntakeService(repository) {
     async list() { return repository.list(); },
     async updateStatus(reference, status) {
       if (!["requested", "inspecting", "awaiting-parts", "ready"].includes(status)) throw new Error("Invalid status");
-      return repository.updateStatus(reference.trim().toUpperCase(), status);
+      const normalized = reference.trim().toUpperCase();
+      const existing = await repository.findByReference(normalized);
+      if (!existing) return null;
+      if (existing.status === status) return existing;
+      if (!transitions[existing.status]?.includes(status)) throw new WorkflowConflictError(`Cannot move a ${existing.status} repair to ${status}.`);
+      return repository.updateStatus(normalized, status);
     },
   };
 }

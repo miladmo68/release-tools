@@ -36,8 +36,14 @@ test("intake API validates, creates, looks up and advances a ticket", async () =
     assert.match(ticket.reference, /^TD-/);
     const lookup = await fetch(`${base}/api/intakes/${ticket.reference}`);
     assert.equal((await lookup.json()).status, "requested");
+    const skipped = await fetch(`${base}/api/intakes/${ticket.reference}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "ready" }) });
+    assert.equal(skipped.status, 409);
     const changed = await fetch(`${base}/api/intakes/${ticket.reference}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "inspecting" }) });
     assert.equal((await changed.json()).status, "inspecting");
+    const finished = await fetch(`${base}/api/intakes/${ticket.reference}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "ready" }) });
+    assert.equal((await finished.json()).status, "ready");
+    const reversed = await fetch(`${base}/api/intakes/${ticket.reference}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "requested" }) });
+    assert.equal(reversed.status, 409);
     const missing = await fetch(`${base}/api/intakes/TD-MISSING`);
     assert.equal(missing.status, 404);
   } finally { await new Promise((resolve) => server.close(resolve)); }
