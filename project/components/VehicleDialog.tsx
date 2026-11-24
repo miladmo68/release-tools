@@ -107,13 +107,13 @@ export function VehicleDialog({ vehicle, terms, setTerms, compared, onCompare, o
                 <p className="split-cap mono"><span>Up front {money(upfront)}</span><span>Financed {money(principal)}</span></p>
                 <div className="sliders">
                   <label>Down payment <output>{money(t.down)}</output>
-                    <input type="range" min={0} max={Math.min(v.price, 20000)} step={500} value={t.down} onChange={num("down")} />
+                    <input aria-label="Down payment" type="range" min={0} max={Math.min(v.price, 20000)} step={500} value={t.down} onChange={num("down")} />
                   </label>
                   <label>Trade-in value <output>{money(t.tradeIn)}</output>
-                    <input type="range" min={0} max={Math.min(v.price, 15000)} step={500} value={t.tradeIn} onChange={num("tradeIn")} />
+                    <input aria-label="Trade-in value" type="range" min={0} max={Math.min(v.price, 15000)} step={500} value={t.tradeIn} onChange={num("tradeIn")} />
                   </label>
                   <label>Interest rate (APR) <output>{t.apr.toFixed(1)}%</output>
-                    <input type="range" min={0} max={12} step={0.1} value={t.apr} onChange={num("apr")} />
+                    <input aria-label="Interest rate (APR)" type="range" min={0} max={12} step={0.1} value={t.apr} onChange={num("apr")} />
                   </label>
                 </div>
                 <fieldset className="seg light">

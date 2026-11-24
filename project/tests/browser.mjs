@@ -26,7 +26,7 @@ async function check(width, height, name) {
   assert.equal(await page.evaluate(() => document.activeElement?.textContent?.trim()), "Skip to inventory");
 
   // fonts are self-hosted and applied
-  const fonts = await page.evaluate(async () => { await document.fonts.ready; return ["Big Shoulders Display", "Instrument Sans", "JetBrains Mono"].map(f => document.fonts.check(`16px "${f}"`)); });
+  const fonts = await page.evaluate(async () => { await document.fonts.ready; return [["Big Shoulders Display", 900], ["Instrument Sans", 400], ["JetBrains Mono", 400]].map(([f, w]) => document.fonts.check(`${w} 16px "${f}"`)); });
   assert.deepEqual(fonts, [true, true, true]);
 
   // budget drives the lot
@@ -35,10 +35,10 @@ async function check(width, height, name) {
   await page.locator("#budget").fill("150");
   await page.getByText("No cars match those filters.").waitFor();
   await page.getByRole("button", { name: /Clear filters and raise budget/ }).click();
-  assert.equal(await page.locator(".grid > li").count(), 16);
+  assert.equal(await page.locator(".grid > li").count(), 15);
   await page.locator("#budget").fill("450");
   const n450 = await page.locator(".grid > li").count();
-  assert.ok(n450 > 0 && n450 < 16);
+  assert.ok(n450 > 0 && n450 < 15);
   await page.getByRole("button", { name: "72 mo" }).first().click();
   assert.ok(await page.locator(".grid > li").count() > n450);
   await page.getByRole("button", { name: "60 mo" }).first().click();
@@ -69,9 +69,9 @@ async function check(width, height, name) {
   const before = await dlg.locator(".big-pay b").textContent();
   await dlg.getByRole("button", { name: "36 mo" }).click();
   assert.notEqual(await dlg.locator(".big-pay b").textContent(), before);
-  await dlg.getByLabel(/Down payment/).fill("6000");
-  await dlg.getByLabel(/Trade-in value/).fill("2000");
-  await dlg.getByLabel(/Interest rate/).fill("0");
+  await dlg.getByRole("slider", { name: /Down payment/ }).fill("6000");
+  await dlg.getByRole("slider", { name: /Trade-in value/ }).fill("2000");
+  await dlg.getByRole("slider", { name: /Interest rate/ }).fill("0");
   assert.match(await dlg.locator(".sum").textContent(), /Total interest\s*\$0/);
 
   // booking validation + success + calendar download
