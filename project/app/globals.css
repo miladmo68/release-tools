@@ -233,3 +233,7 @@ h2 { font: 900 clamp(2.6rem, 5vw, 4.2rem)/.95 var(--display); text-transform: up
   .tray { flex-wrap: wrap; bottom: 8px; }
   .tray ul { flex-basis: 100%; }
 }
+@media (max-width: 680px) {
+  .stage-car .car-art { width: 100%; margin-left: 0; }
+  .hero-stage { padding-bottom: 8px; }
+}
