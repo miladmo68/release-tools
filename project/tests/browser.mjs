@@ -128,7 +128,8 @@ async function check(width, height, name) {
   await page.evaluate(() => localStorage.clear());
   await page.goto(`${origin}${base}/`, { waitUntil: "networkidle" });
   await mkdir(join(process.cwd(), "public", "screenshots"), { recursive: true });
-  await page.screenshot({ path: join(process.cwd(), "public", "screenshots", `${name}.png`), fullPage: name === "mobile" ? false : false });
+  if (name === "desktop") await page.setViewportSize({ width, height: 1060 });
+  await page.screenshot({ path: join(process.cwd(), "public", "screenshots", `${name}.png`) });
   console.log(`${name} ${width}x${height}: budget, filters, sorting, finance, booking, calendar export, compare, persistence, fonts, overflow passed`);
   await context.close();
 }
