@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import "@fontsource/big-shoulders-display/700.css";
-import "@fontsource/big-shoulders-display/900.css";
-import "@fontsource/instrument-sans/400.css";
-import "@fontsource/instrument-sans/500.css";
-import "@fontsource/instrument-sans/600.css";
-import "@fontsource/jetbrains-mono/400.css";
-import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/big-shoulders-display/latin-700";
+import "@fontsource/big-shoulders-display/latin-900";
+import "@fontsource/instrument-sans/latin-400";
+import "@fontsource/instrument-sans/latin-500";
+import "@fontsource/instrument-sans/latin-600";
+import "@fontsource/jetbrains-mono/latin-400";
+import "@fontsource/jetbrains-mono/latin-500";
 import "./globals.css";
 
 export const metadata: Metadata = {
