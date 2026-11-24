@@ -25,3 +25,17 @@ test("search and fuel filters combine", () => {
   const res = applyFilters(VEHICLES, { budget: 5000, body: "all", fuel: "Electric", query: "aura", sort: "price" }, DEFAULT_TERMS);
   assert.deepEqual(res.map(v => v.model), ["Aura", "Aura"]);
 });
+
+const { openDays, reference, icsFile } = require("../.test-dist/booking.js");
+test("open days skip nothing but shorten Sundays", () => {
+  const days = openDays(new Date(2026, 10, 24));
+  assert.equal(days.length, 6);
+  assert.equal(days[0].key, "2026-11-25");
+  const sunday = days.find(d => d.label.startsWith("Sun"));
+  assert.ok(sunday && sunday.times.length === 3);
+});
+test("booking reference is stable and calendar file is valid", () => {
+  assert.equal(reference("KM-2006", "2026-11-25", "11:00"), reference("KM-2006", "2026-11-25", "11:00"));
+  const ics = icsFile("Test drive", "2026-11-25", "11:00", "KV-00001");
+  assert.ok(ics.includes("DTSTART:20261125T110000") && ics.includes("DTEND:20261125T120000"));
+});

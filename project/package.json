@@ -7,7 +7,7 @@
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsc --target ES2022 --module commonjs --lib es2022,dom --outDir .test-dist --skipLibCheck --esModuleInterop lib/types.ts lib/inventory.ts lib/finance.ts && node --test tests/*.test.cjs",
+    "test": "tsc --target ES2022 --module commonjs --lib es2022,dom --outDir .test-dist --skipLibCheck --esModuleInterop lib/types.ts lib/inventory.ts lib/finance.ts lib/booking.ts && node --test tests/*.test.cjs",
     "validate": "npm run lint && npm run typecheck && npm test && npm run build",
     "qa:browser": "node tests/browser.mjs"
   },

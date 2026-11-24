@@ -23,3 +23,7 @@ export function totalInterest(price: number, t: FinanceTerms): number {
 export function money(n: number): string {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n);
 }
+
+export function clampTerms(t: FinanceTerms, price: number): FinanceTerms {
+  return { ...t, down: Math.min(Math.max(0, t.down), price), tradeIn: Math.min(Math.max(0, t.tradeIn), price), apr: Math.min(Math.max(0, t.apr), 19.9) };
+}
