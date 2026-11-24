@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CarArt } from "./CarArt";
+import { VehicleDialog } from "./VehicleDialog";
+import { CompareDialog } from "./CompareDialog";
 import { applyFilters, VEHICLES } from "@/lib/inventory";
 import { DEFAULT_TERMS, TERMS, money, monthlyPayment } from "@/lib/finance";
 import type { Body, Filters, FinanceTerms, Fuel, Vehicle } from "@/lib/types";
@@ -16,6 +18,10 @@ const STORE = "kestrel-shop-v1";
 export function Shop() {
   const [filters, setFilters] = useState<Filters>({ budget: 450, body: "all", fuel: "all", query: "", sort: "payment" });
   const [terms, setTerms] = useState<FinanceTerms>(DEFAULT_TERMS);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [compare, setCompare] = useState<string[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     try {
@@ -24,12 +30,13 @@ export function Shop() {
         const saved = JSON.parse(raw);
         if (saved.filters) setFilters(f => ({ ...f, ...saved.filters }));
         if (saved.terms) setTerms(t => ({ ...t, ...saved.terms }));
+        if (Array.isArray(saved.compare)) setCompare(saved.compare.filter((id: string) => VEHICLES.some(v => v.id === id)).slice(0, 3));
       }
     } catch { /* storage unavailable */ }
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(STORE, JSON.stringify({ filters, terms })); } catch { /* ignore */ }
-  }, [filters, terms]);
+    try { localStorage.setItem(STORE, JSON.stringify({ filters, terms, compare })); } catch { /* ignore */ }
+  }, [filters, terms, compare]);
 
   const results = useMemo(() => applyFilters(VEHICLES, filters, terms), [filters, terms]);
   const featured: Vehicle | undefined = useMemo(
@@ -39,6 +46,13 @@ export function Shop() {
   const lowest = useMemo(() => Math.min(...VEHICLES.map(v => monthlyPayment(v.price, terms))), [terms]);
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setFilters(f => ({ ...f, [k]: v }));
   const reset = () => setFilters(f => ({ ...f, body: "all", fuel: "all", query: "", sort: "payment" }));
+  const open = VEHICLES.find(v => v.id === openId) ?? null;
+  const compared = compare.map(id => VEHICLES.find(v => v.id === id)).filter((v): v is Vehicle => Boolean(v));
+  const toggleCompare = (id: string) => {
+    if (compare.includes(id)) { setCompare(c => c.filter(x => x !== id)); setNotice("Removed from compare."); return; }
+    if (compare.length >= 3) { setNotice("You can compare up to three cars. Remove one first."); return; }
+    setCompare(c => [...c, id]); setNotice("Added to compare.");
+  };
   const fits = applyFilters(VEHICLES, { ...filters, body: "all", fuel: "all", query: "" }, terms).length;
 
   return (
@@ -158,6 +172,10 @@ export function Shop() {
                         <div><dt>Fuel</dt><dd>{v.fuel}</dd></div>
                         <div><dt>Power</dt><dd>{v.power} hp</dd></div>
                       </dl>
+                      <div className="card-actions">
+                        <button className="btn btn-ink" type="button" onClick={() => setOpenId(v.id)} aria-label={`View details for ${v.year} ${v.make} ${v.model}`}>View &amp; finance</button>
+                        <button className="btn btn-line" type="button" aria-pressed={compare.includes(v.id)} onClick={() => toggleCompare(v.id)} aria-label={`Compare ${v.year} ${v.make} ${v.model}`}>{compare.includes(v.id) ? "Added" : "Compare"}</button>
+                      </div>
                     </div>
                   </article>
                 </li>
@@ -166,6 +184,17 @@ export function Shop() {
           )}
         </div>
       </section>
+
+      <p className="sr" role="status" aria-live="polite">{notice}</p>
+      {compare.length > 0 && (
+        <div className="tray" role="region" aria-label="Compare tray">
+          <ul>{compared.map(v => <li key={v.id}><span>{v.year} {v.make} {v.model}</span><button type="button" onClick={() => toggleCompare(v.id)} aria-label={`Remove ${v.model} from compare`}>×</button></li>)}</ul>
+          <button className="btn btn-volt" type="button" onClick={() => setShowCompare(true)} disabled={compare.length < 2}>{compare.length < 2 ? "Add one more to compare" : `Compare ${compare.length} cars`}</button>
+          <button className="link-light" type="button" onClick={() => setCompare([])}>Clear</button>
+        </div>
+      )}
+      <VehicleDialog vehicle={open} terms={terms} setTerms={setTerms} compared={open ? compare.includes(open.id) : false} onCompare={() => open && toggleCompare(open.id)} onClose={() => setOpenId(null)} />
+      <CompareDialog open={showCompare} vehicles={compared} terms={terms} onClose={() => setShowCompare(false)} onRemove={toggleCompare} />
     </>
   );
 }
