@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {composeLook,queryGarments,garment} from '../server/domain.js';
+const items=[{id:'a',name:'Studio Coat',category:'Layer',price:320,color:'Sand',image:'',material:'Wool'},{id:'b',name:'Soft Shirt',category:'Top',price:90,color:'Ivory',image:'',material:'Cotton'},{id:'c',name:'Wide Trouser',category:'Bottom',price:140,color:'Ink',image:'',material:'Linen'}];
+test('look total and completion update from three valid slots',()=>{const result=composeLook(items,{Layer:'a',Top:'b',Bottom:'c'});assert.equal(result.total,550);assert.equal(result.complete,true);assert.equal(composeLook(items,{Layer:'b'}).total,0);});
+test('catalog search respects category and query',()=>{assert.equal(queryGarments(items,{category:'Top',q:'cotton'}).length,1);assert.equal(queryGarments(items,{category:'Bottom',q:'cotton'}).length,0);});
+test('garment rejects negative prices',()=>assert.equal(garment.safeParse({...items[0],price:-1}).success,false));

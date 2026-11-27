@@ -1,0 +1,3 @@
+import express from 'express';
+import {garment,queryGarments} from './domain.js';
+export function createApp(repository){const app=express();app.get('/api/garments',async(req,res,next)=>{try{res.json(queryGarments(garment.array().parse(await repository.list()),req.query));}catch(error){next(error);}});app.get('/api/garments/:id',async(req,res,next)=>{try{const item=await repository.find(req.params.id);if(!item)return res.status(404).json({error:'Garment not found'});res.json(garment.parse(item));}catch(error){next(error);}});app.use((_req,res)=>res.status(404).json({error:'Route not found'}));app.use((_error,_req,res,_next)=>res.status(500).json({error:'Unable to load garments'}));return app;}

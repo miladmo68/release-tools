@@ -1,0 +1,11 @@
+[
+  {"id":"layer-01","name":"The Form Coat","category":"Layer","price":328,"color":"Oat","image":"","material":"Brushed wool"},
+  {"id":"layer-02","name":"The Trench","category":"Layer","price":284,"color":"Stone","image":"","material":"Organic cotton"},
+  {"id":"layer-03","name":"The Short Jacket","category":"Layer","price":248,"color":"Olive","image":"","material":"Cotton twill"},
+  {"id":"top-01","name":"The Open Collar","category":"Top","price":118,"color":"Chalk","image":"","material":"Linen blend"},
+  {"id":"top-02","name":"The Fine Knit","category":"Top","price":142,"color":"Moss","image":"","material":"Merino wool"},
+  {"id":"top-03","name":"The Everyday Shirt","category":"Top","price":96,"color":"Clay","image":"","material":"Cotton poplin"},
+  {"id":"bottom-01","name":"The Wide Trouser","category":"Bottom","price":176,"color":"Ink","image":"","material":"Washed linen"},
+  {"id":"bottom-02","name":"The Soft Pleat","category":"Bottom","price":164,"color":"Sand","image":"","material":"Cotton blend"},
+  {"id":"bottom-03","name":"The Straight Leg","category":"Bottom","price":154,"color":"Forest","image":"","material":"Cotton denim"}
+]

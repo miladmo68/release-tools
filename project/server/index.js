@@ -1,1 +1,9 @@
-import mongoose from 'mongoose';import {readFile} from 'node:fs/promises';import {createApp} from './app.js';import {MemoryRepository,MongoRepository} from './repositories.js';const seed=JSON.parse(await readFile(new URL('../src/seed.json',import.meta.url),'utf8'));if(process.env.MONGODB_URI)await mongoose.connect(process.env.MONGODB_URI);const repo=process.env.MONGODB_URI?new MongoRepository():new MemoryRepository(seed);createApp(repo).listen(process.env.PORT||3001);
+import mongoose from 'mongoose';
+import seed from '../src/seed.json' with {type:'json'};
+import {createApp} from './app.js';
+import {mongoRepository,memoryRepository} from './repositories.js';
+const uri=process.env.MONGODB_URI;
+if(uri)await mongoose.connect(uri);
+const repository=uri?mongoRepository():memoryRepository(seed);
+const port=Number(process.env.PORT||3001);
+createApp(repository).listen(port,()=>console.log(`Merefold API listening on ${port}`));
