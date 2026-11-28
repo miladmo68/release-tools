@@ -1,6 +1,8 @@
 # Merefold Wardrobe
 
-A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly. The static demo is ready for publication; its GitHub Pages URL and public repository will be added after the release gate passes. Current source lives on the release branch of `miladmo68/release-tools`.
+[Live Demo](https://miladmo68.github.io/merefold-wardrobe/) · [GitHub Source](https://github.com/miladmo68/merefold-wardrobe)
+
+A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly.
 
 ![Merefold wardrobe studio desktop preview](public/screenshots/desktop.png)
 
@@ -29,3 +31,7 @@ npm run qa:browser
 ```
 
 Run `npm start` to start the API on port 3001. The Pages build uses the repository subpath configured in `vite.config.js`.
+
+## Deploy
+
+The repository workflow validates the app and deploys the Vite `dist` output to GitHub Pages from `main`. `GITHUB_PAGES=true npm run build` reproduces the static build locally. The public demo uses bundled JSON; the optional Express/Mongoose API is for local or separately hosted use.
