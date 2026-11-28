@@ -1,11 +1,11 @@
 [
-  {"id":"layer-01","name":"The Form Coat","category":"Layer","price":328,"color":"Oat","image":"","material":"Brushed wool"},
-  {"id":"layer-02","name":"The Trench","category":"Layer","price":284,"color":"Stone","image":"","material":"Organic cotton"},
-  {"id":"layer-03","name":"The Short Jacket","category":"Layer","price":248,"color":"Olive","image":"","material":"Cotton twill"},
-  {"id":"top-01","name":"The Open Collar","category":"Top","price":118,"color":"Chalk","image":"","material":"Linen blend"},
-  {"id":"top-02","name":"The Fine Knit","category":"Top","price":142,"color":"Moss","image":"","material":"Merino wool"},
-  {"id":"top-03","name":"The Everyday Shirt","category":"Top","price":96,"color":"Clay","image":"","material":"Cotton poplin"},
-  {"id":"bottom-01","name":"The Wide Trouser","category":"Bottom","price":176,"color":"Ink","image":"","material":"Washed linen"},
-  {"id":"bottom-02","name":"The Soft Pleat","category":"Bottom","price":164,"color":"Sand","image":"","material":"Cotton blend"},
-  {"id":"bottom-03","name":"The Straight Leg","category":"Bottom","price":154,"color":"Forest","image":"","material":"Cotton denim"}
+  {"id":"layer-01","name":"The Form Coat","category":"Layer","price":328,"color":"Oat","image":"/images/5424909.webp","material":"Tailored layer"},
+  {"id":"layer-02","name":"The Trench","category":"Layer","price":284,"color":"Stone","image":"/images/9776455.webp","material":"Lightweight layer"},
+  {"id":"layer-03","name":"The Short Jacket","category":"Layer","price":248,"color":"Ink","image":"/images/16341730.webp","material":"Quilted layer"},
+  {"id":"top-01","name":"The Open Collar","category":"Top","price":118,"color":"Chalk","image":"/images/22441291.webp","material":"Relaxed shirt"},
+  {"id":"top-02","name":"The Fine Knit","category":"Top","price":142,"color":"Moss","image":"/images/9594694.webp","material":"Soft sweatshirt"},
+  {"id":"top-03","name":"The Everyday Shirt","category":"Top","price":96,"color":"Chalk","image":"/images/9889565.webp","material":"Cotton shirt"},
+  {"id":"bottom-01","name":"The Wide Trouser","category":"Bottom","price":176,"color":"Forest","image":"/images/20094389.webp","material":"Trouser edit"},
+  {"id":"bottom-02","name":"The Soft Pleat","category":"Bottom","price":164,"color":"Sand","image":"/images/29210804.webp","material":"Pleated trouser edit"},
+  {"id":"bottom-03","name":"The Straight Leg","category":"Bottom","price":154,"color":"Ink","image":"/images/40475619.webp","material":"Straight trouser edit"}
 ]
