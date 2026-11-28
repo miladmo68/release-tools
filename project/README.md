@@ -1,6 +1,6 @@
 # Merefold Wardrobe
 
-A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly. Explore the [live wardrobe studio](https://miladmo68.github.io/merefold-wardrobe/) or view the [source](https://github.com/miladmo68/merefold-wardrobe).
+A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly. The static demo is ready for publication; its GitHub Pages URL and public repository will be added after the release gate passes. Current source lives on the release branch of `miladmo68/release-tools`.
 
 ![Merefold wardrobe studio desktop preview](public/screenshots/desktop.png)
 
