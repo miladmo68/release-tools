@@ -17,10 +17,12 @@ try{
     await page.getByText('$634',{exact:true}).waitFor();
     await page.getByRole('tab',{name:/Layer/}).click();await page.getByPlaceholder('Search material, color, name…').fill('not a garment');
     await page.getByRole('heading',{name:'No pieces found.'}).waitFor();await page.getByRole('button',{name:'Clear search'}).click();
-    await page.getByRole('button',{name:'Details ↗'}).first().click();await page.getByRole('dialog').waitFor();await page.getByRole('button',{name:'Close details'}).click();
+    await page.getByRole('button',{name:'Details ↗'}).first().click();await page.getByRole('dialog').waitFor();await page.keyboard.press('Escape');await page.getByRole('dialog').waitFor({state:'hidden'});
     await page.getByRole('button',{name:/Save this look/}).click();await page.getByRole('button',{name:/Saved look/}).click();await page.getByRole('heading',{name:'Your saved look.'}).waitFor();await page.getByRole('button',{name:'Close saved look'}).click();
     const download=page.waitForEvent('download');await page.getByRole('button',{name:/Download look details/}).click();assert.equal((await download).suggestedFilename(),'merefold-look.json');
     await page.reload();await page.getByRole('button',{name:/Change top: The Fine Knit/}).waitFor();
+    await page.getByRole('button',{name:/Saved look ●/}).waitFor();
+    assert.equal(await page.locator('img.board-photo, img.choice-photo').evaluateAll(images=>images.every(image=>image.complete&&image.naturalWidth>0)),true,'editorial photos loaded');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'horizontal overflow');assert.deepEqual(errors,[]);
     await page.screenshot({path:`public/screenshots/${name}.png`,fullPage:true});await context.close();
   }
