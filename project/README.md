@@ -1,6 +1,8 @@
 # Merefold Wardrobe
 
-A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly. The project is in development; a verified live demo and finished screenshots will be added at release.
+A fictional contemporary wardrobe studio centered on one interaction: compose a three-piece outfit and see its contents and total change instantly. Explore the [live wardrobe studio](https://miladmo68.github.io/merefold-wardrobe/) or view the [source](https://github.com/miladmo68/merefold-wardrobe).
+
+![Merefold wardrobe studio desktop preview](public/screenshots/desktop.png)
 
 ## Product
 
@@ -9,7 +11,9 @@ A fictional contemporary wardrobe studio centered on one interaction: compose a 
 - Inspect material details, reset the composition, save a look in this browser and download its illustrative details.
 - Keyboard-accessible controls, responsive layout and reduced-motion support.
 
-All garments, prices and order-related content are illustrative. No stock is held, order is placed or payment collected.
+All garments, prices and order-related content are illustrative. Photography is licensed editorial reference imagery, not Merefold inventory. No stock is held, order is placed or payment collected. See [attributions](ATTRIBUTIONS.md).
+
+![Merefold wardrobe studio mobile preview](public/screenshots/mobile.png)
 
 ## Architecture
 
