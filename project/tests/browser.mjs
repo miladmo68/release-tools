@@ -6,7 +6,7 @@ import {mkdir} from 'node:fs/promises';
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port','4173'],{stdio:'inherit'});
 const base='http://127.0.0.1:4173/merefold-wardrobe/';let browser;
 try{
-  for(let i=0;i<60;i++){try{if((await fetch(base)).ok)break;}catch{}await new Promise(resolve=>setTimeout(resolve,500));}
+  for(let i=0;i<60;i++){try{if((await fetch(base)).ok)break;}catch{await new Promise(resolve=>setTimeout(resolve,500));}}
   browser=await chromium.launch();await mkdir('public/screenshots',{recursive:true});
   for(const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]){
     const context=await browser.newContext({viewport:{width,height},acceptDownloads:true});const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
